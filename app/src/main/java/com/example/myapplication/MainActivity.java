@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        Log.e("btn1", "onCreate execute");
+        //Log.e("btn1", "onCreate execute");
     }
 
 
