@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.github.YizheYang.layout.Title
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <EditText
+        android:id="@+id/first_EditText"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:hint="标题"
+        android:textSize="24sp"
+        android:maxLines="1"/>
+
+    <EditText
+        android:id="@+id/second_EditText"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:hint="内容"
+        android:maxLines="31"
+        android:minLines="31" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/add_picture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/addpic"
+            android:background="@color/transparent"
+            android:layout_marginStart="10dp"/>
+
+        <ImageButton
+            android:id="@+id/camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/camera"
+            android:background="@color/transparent"
+            android:layout_marginStart="10dp"/>
+
+        <ImageButton
+            android:id="@+id/record"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/record"
+            android:background="@color/transparent"
+            android:layout_marginStart="10dp"/>
+
+        <ImageButton
+            android:id="@+id/draw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/draw"
+            android:background="@color/transparent"
+            android:layout_marginStart="10dp"/>
+
+        <Button
+            android:id="@+id/test2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="test"
+            android:layout_marginStart="10dp"/>
+
+        <ImageView
+            android:id="@+id/testView"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"/>
+    </LinearLayout>
+
+</LinearLayout>

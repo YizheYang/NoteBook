@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.github.YizheYang.layout.Title
+        android:id="@+id/draw_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <com.github.YizheYang.layout.DrawView
+        android:id="@+id/drawView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/revoke"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:background="@color/transparent"
+            android:src="@drawable/last"/>
+
+        <ImageButton
+            android:id="@+id/resume"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:background="@color/transparent"
+            android:src="@drawable/recovery"/>
+
+        <ImageButton
+            android:id="@+id/penSize"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:background="@color/transparent"
+            android:src="@drawable/pensize"/>
+
+        <ImageButton
+            android:id="@+id/board"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:background="@color/transparent"
+            android:src="@drawable/board"/>
+
+        <ImageButton
+            android:id="@+id/eraser"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:background="@color/transparent"
+            android:src="@drawable/eraser"/>
+
+        <ImageButton
+            android:id="@+id/remove"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:background="@color/transparent"
+            android:src="@drawable/delete"/>
+    </LinearLayout>
+
+
+</LinearLayout>
