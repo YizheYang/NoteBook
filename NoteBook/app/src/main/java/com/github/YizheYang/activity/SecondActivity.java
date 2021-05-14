@@ -111,14 +111,12 @@ public class SecondActivity extends AppCompatActivity {
 		mode = it.getIntExtra("mode", NEW_MODE);
 		if (mode == EDIT_MODE) {
 			Bundle bundle = it.getBundleExtra("data");
-			Note note = new Note(bundle.getString("id"), bundle.getString("title"), bundle.getString("content"));
+			Note note = new Note(bundle.getString("id"), bundle.getString("title"), bundle.getString("content"), bundle.getString("date"));
 			Message message = new Message();
 			message.what = 2;
 			message.obj = note;
 			handler.sendMessage(message);
 		}
-
-
 
 		testButton.setOnClickListener(v -> {
 			Message message = new Message();
@@ -165,10 +163,9 @@ public class SecondActivity extends AppCompatActivity {
 				db.update("Note", values, "ID=?", new String[]{editId});
 			} else if (mode == NEW_MODE){
 				ContentValues values = new ContentValues();
-				Date date = new Date();
 				values.put("TITLE", title.getText().toString());
 				values.put("CONTENT", content.getText().toString());
-				values.put("DATE", date.getTime());
+				values.put("DATE", myTimer.getDate());
 				db.insert("Note", null, values);
 			}
 			Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();

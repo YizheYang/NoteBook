@@ -31,5 +31,18 @@
             android:text="无内容"
             android:textSize="15sp" />
 
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end">
+
+            <TextView
+                android:id="@+id/recyclerView_date"
+                android:layout_width="wrap_content"
+                android:layout_height="12dp"
+                android:layout_marginEnd="10dp"
+                android:text="1970年1月1日0:0:0"
+                android:textSize="10dp"/>
+        </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -11,11 +11,13 @@ import com.github.YizheYang.R;
 
 public class SearchLayout extends LinearLayout {
 
+	public EditText editText;
+	public Button button;
+
 	public SearchLayout(Context context, AttributeSet attributeSet) {
 		super(context, attributeSet);
 		LayoutInflater.from(context).inflate(R.layout.search, this);
-		Button search_Button = findViewById(R.id.search_Button);
-		EditText search_EditText = findViewById(R.id.search_EditText);
-		String text = search_EditText.getText().toString();
+		button = findViewById(R.id.search_Button);
+		editText = findViewById(R.id.search_EditText);
 	}
 }

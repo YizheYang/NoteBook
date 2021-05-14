@@ -6,9 +6,15 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListPopupWindow;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,10 +30,13 @@ import com.github.YizheYang.MySQLiteOpenHelper;
 import com.github.YizheYang.Note;
 import com.github.YizheYang.NoteAdapter;
 import com.github.YizheYang.R;
+import com.github.YizheYang.layout.SearchLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,6 +48,10 @@ public class MainActivity extends AppCompatActivity {
 	private List<Note> noteList = new ArrayList<>();
 	private MySQLiteOpenHelper helper;
 	private SQLiteDatabase db;
+
+	private SearchLayout search;
+	private List<Note> searchList = new ArrayList<>();
+	private ListPopupWindow listPopupWindow = null;
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -61,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
 		requestPower();
 		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null, 1);
 		db = helper.getWritableDatabase();
@@ -98,6 +112,43 @@ public class MainActivity extends AppCompatActivity {
 			}
 		});
 
+		search = findViewById(R.id.search);
+		String text = search.editText.getText().toString();
+		search.editText.addTextChangedListener(new TextWatcher() {
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+				if (listPopupWindow != null) {
+					listPopupWindow.dismiss();
+				}
+				searchList.clear();
+				Log.d("TAG", "beforeTextChanged: ");
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				if (s.toString().equals("")) {
+					searchList.clear();
+					return;
+				}
+				for (int i = 0; i < noteList.size(); i++) {
+					Note note = noteList.get(i);
+					if (note.content.length() >= s.length()) {
+						if (isRepeat(replaceContent(note.content), s.toString())) {
+							searchList.add(note);
+						}
+					}
+				}
+				Log.d("TAG", "onTextChanged: ");
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+				showListPopupWindow();
+				Log.d("TAG", "afterTextChanged: ");
+			}
+		});
+
 		FloatingActionButton fab = findViewById(R.id.floatButton);
 		fab.setOnClickListener(v -> {
 			Intent intent = new Intent(MainActivity.this, SecondActivity.class);
@@ -123,7 +174,8 @@ public class MainActivity extends AppCompatActivity {
 			do {
 				Note note = new Note(cursor.getString(cursor.getColumnIndex("ID"))
 						, cursor.getString(cursor.getColumnIndex("TITLE"))
-						, cursor.getString(cursor.getColumnIndex("CONTENT")));
+						, cursor.getString(cursor.getColumnIndex("CONTENT"))
+						, cursor.getString(cursor.getColumnIndex("DATE")));
 				noteList.add(note);
 			}while (cursor.moveToNext());
 		}
@@ -145,6 +197,77 @@ public class MainActivity extends AppCompatActivity {
 						, 1);
 			}
 		}
+	}
+
+	private void showListPopupWindow() {
+		listPopupWindow = new ListPopupWindow(this);
+		SimpleAdapter adapter = new SimpleAdapter(this, getAdapterList(searchList), R.layout.search_item
+				, new String[]{"title", "content", "date"}, new int[]{R.id.search_title, R.id.search_content, R.id.search_date});
+		listPopupWindow.setAdapter(adapter);//用android内置布局，或设计自己的样式
+		listPopupWindow.setAnchorView(search.editText);//以哪个控件为基准，在该处以logId为基准
+//		listPopupWindow.setModal(true);
+
+		listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {//设置项点击监听
+			@Override
+			public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+				Note note = searchList.get(i);
+				Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+				intent.putExtra("mode", EDIT_MODE);
+				Bundle bundle = new Bundle();
+				bundle.putString("id", note.id);
+				bundle.putString("title", note.title);
+				bundle.putString("content", note.content);
+				intent.putExtra("data", bundle);
+				startActivityForResult(intent, 1);
+				listPopupWindow.dismiss();//如果已经选择了，隐藏起来
+			}
+		});
+		listPopupWindow.show();//把ListPopWindow展示出来
+	}
+
+	public List<Map<String,Object>> getAdapterList(List<Note> l) {
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		Map<String,Object> map = new HashMap<String,Object>();
+		for(int i = 0;i < l.size();i++) {
+			map=new HashMap<String,Object>();
+			map.put("title", l.get(i).title);
+			map.put("content", replaceContent(l.get(i).content));
+			map.put("date", l.get(i).date);
+			list.add(map);
+		}
+		return list;
+	}
+
+	private String replaceContent(String c) {
+		String[] strings = c.split("\n");
+		for (int i = 0;i < strings.length;i++) {
+			String type = null;
+			if (strings[i].length() > 4) {
+				type = strings[i].substring(strings[i].length() - 4);
+			}
+			if (type != null) {
+				if(type.equals(".amr")){
+					strings[i] = "[录音]";
+				} else if (type.equals(".jpg")){
+					strings[i] = "[图片]";
+				}
+			}
+		}
+		String result = "";
+		for (String string : strings) {
+			result += string;
+		}
+		return result;
+	}
+
+	private boolean isRepeat(String l, String s) {
+		for (int i = 0;i <= l.length() - s.length();i++) {
+			String temp = l.substring(i, i + s.length());
+			if (temp.equals(s)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

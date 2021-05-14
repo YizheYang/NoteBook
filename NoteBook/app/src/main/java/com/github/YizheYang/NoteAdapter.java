@@ -1,9 +1,6 @@
 package com.github.YizheYang;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,13 +9,12 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 
 	private Context mContext;
 	private RecyclerView mRecyclerView;
-	private List<Note> mNoteList;
+	private final List<Note> mNoteList;
 
 	private OnItemClickListener mOnItemClickListener;
 	private OnLongClickListener mOnLongClickListener;
@@ -38,6 +34,9 @@ public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 		}
 		if (note.content != null && !note.content.equals("")) {
 			holder.content.setText(replaceContent(note.content));
+		}
+		if (note.date != null && !note.date.equals("")) {
+			holder.date.setText(note.date);
 		}
 		if (mOnItemClickListener != null) {
 			holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position));
