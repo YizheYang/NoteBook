@@ -10,7 +10,7 @@ import androidx.annotation.Nullable;
 public class MySQLiteOpenHelper extends SQLiteOpenHelper {
 	protected Context mContext;
 	public static final String CREATE = "create table Note ("
-			+ "id integer primary key autoincrement, "
+			+ "ID integer primary key autoincrement, "
 			+ "TITLE text, "
 			+ "CONTENT text, "
 			+ "DATE integer)";

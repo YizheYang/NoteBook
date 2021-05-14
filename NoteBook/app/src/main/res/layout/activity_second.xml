@@ -5,7 +5,7 @@
     android:layout_height="match_parent">
 
     <com.github.YizheYang.layout.Title
-        android:id="@+id/title"
+        android:id="@+id/second_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 

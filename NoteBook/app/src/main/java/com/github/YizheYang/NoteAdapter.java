@@ -1,15 +1,18 @@
 package com.github.YizheYang;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 
@@ -18,6 +21,7 @@ public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 	private List<Note> mNoteList;
 
 	private OnItemClickListener mOnItemClickListener;
+	private OnLongClickListener mOnLongClickListener;
 
 	@NonNull
 	@Override
@@ -29,10 +33,23 @@ public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 	@Override
 	public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 		Note note = mNoteList.get(position);
-		holder.title.setText(note.title);
-		holder.content.setText(note.content);
+		if (note.title != null && !note.title.equals("")) {
+			holder.title.setText(note.title);
+		}
+		if (note.content != null && !note.content.equals("")) {
+			holder.content.setText(replaceContent(note.content));
+		}
 		if (mOnItemClickListener != null) {
 			holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position));
+		}
+		if (mOnLongClickListener != null) {
+			holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View v) {
+					mOnLongClickListener.OnLongClick(v, holder.getAdapterPosition());
+					return true;
+				}
+			});
 		}
 	}
 
@@ -77,11 +94,41 @@ public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 //		}
 //	}
 
+	private String replaceContent(String c) {
+		String[] strings = c.split("\n");
+		for (int i = 0;i < strings.length;i++) {
+			String type = null;
+			if (strings[i].length() > 4) {
+				type = strings[i].substring(strings[i].length() - 4);
+			}
+			if (type != null) {
+				if(type.equals(".amr")){
+					strings[i] = "[录音]";
+				} else if (type.equals(".jpg")){
+					strings[i] = "[图片]";
+				}
+			}
+		}
+		String result = "";
+		for (String string : strings) {
+			result += string;
+		}
+		return result;
+	}
+
 	public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
 		this.mOnItemClickListener = onItemClickListener;
 	}
 
 	public interface OnItemClickListener{
 		void onItemClick(View view, int position);
+	}
+
+	public void setOnLongClickListener(OnLongClickListener onLongClickListener) {
+		this.mOnLongClickListener = onLongClickListener;
+	}
+
+	public interface OnLongClickListener{
+		void OnLongClick(View view, int position);
 	}
 }

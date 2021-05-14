@@ -19,7 +19,9 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="10dp" />
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"/>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/floatButton"
@@ -27,7 +29,8 @@
             android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/recyclerView"
             android:layout_alignEnd="@+id/recyclerView"
-            android:layout_margin="16dp"
+            android:layout_marginEnd="18dp"
+            android:layout_marginBottom="38dp"
             android:src="@drawable/plus"/>
 
     </RelativeLayout>
