@@ -2,5 +2,6 @@
     <string name="app_name">NoteBook</string>
     <string name="Eraser">橡皮擦</string>
     <string name="Pen">画笔</string>
+    <string name="_00_00_00">00:00:00</string>
 
 </resources>

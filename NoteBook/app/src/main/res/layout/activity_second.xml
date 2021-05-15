@@ -70,11 +70,6 @@
             android:text="test"
             android:layout_marginStart="10dp"/>
 
-        <ImageView
-            android:id="@+id/testView"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="10dp"/>
     </LinearLayout>
 
 </LinearLayout>

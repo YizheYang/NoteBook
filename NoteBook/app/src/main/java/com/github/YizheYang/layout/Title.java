@@ -7,20 +7,25 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
 import com.github.YizheYang.R;
 
+import org.w3c.dom.Text;
+
 public class Title extends LinearLayout {
 
 	public ImageButton back;
+	public TextView title;
 	public ImageButton save;
 
 	public Title(Context context, @Nullable AttributeSet attrs) {
 		super(context, attrs);
 		LayoutInflater.from(context).inflate(R.layout.title, this);
 		back = findViewById(R.id.back);
+		title = findViewById(R.id.title);
 		save = findViewById(R.id.save);
 		back.setOnClickListener(v -> {
 			AlertDialog.Builder builder = new AlertDialog.Builder(context)

@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -24,9 +25,11 @@ import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -60,19 +63,21 @@ import java.util.regex.Pattern;
 public class SecondActivity extends AppCompatActivity {
 
 	private static final String TAG = "SecondActivity";
-	private static final int CODE_FOR_WRITE_PERMISSION = 1;
 	private int mode;
 	private String editId;
-	private static final int NEW_MODE = 1;
-	private static final int EDIT_MODE = 2;
+
+	private static final int NEW_MODE = 21;
+	private static final int EDIT_MODE = 22;
+	private static final int RECORD_MODE = 31;
+	private static final int PLAY_MODE = 32;
+
 	private final int ADD_PICTURE = 1;
 	private final int CAMERA = 2;
 	private final int RECORD = 3;
 	private final int DRAW = 4;
+
 	private EditText title;
 	private EditText content;
-	private Button testButton;
-	private ImageView testView;
 
 	private MyTimer myTimer;
 	private MySQLiteOpenHelper helper;
@@ -82,10 +87,6 @@ public class SecondActivity extends AppCompatActivity {
 		public void handleMessage(@NonNull Message msg) {
 			super.handleMessage(msg);
 			if (msg.what == 1) {
-				String data = (String) msg.obj;
-				Uri uri = Uri.parse(data);
-				testView.setImageURI(uri);
-			} else if (msg.what == 2) {
 				Note note = (Note) msg.obj;
 				editId = note.id;
 				title.setText(note.title);
@@ -104,8 +105,7 @@ public class SecondActivity extends AppCompatActivity {
 		myTimer = new MyTimer();
 		title = findViewById(R.id.first_EditText);
 		content = findViewById(R.id.second_EditText);
-		testButton = findViewById(R.id.test2);
-		testView = findViewById(R.id.testView);
+		Button testButton = findViewById(R.id.test2);
 
 		Intent it = getIntent();
 		mode = it.getIntExtra("mode", NEW_MODE);
@@ -113,16 +113,12 @@ public class SecondActivity extends AppCompatActivity {
 			Bundle bundle = it.getBundleExtra("data");
 			Note note = new Note(bundle.getString("id"), bundle.getString("title"), bundle.getString("content"), bundle.getString("date"));
 			Message message = new Message();
-			message.what = 2;
+			message.what = 1;
 			message.obj = note;
 			handler.sendMessage(message);
 		}
 
 		testButton.setOnClickListener(v -> {
-			Message message = new Message();
-			message.what = 1;
-			message.obj = content.getText().toString();
-			handler.sendMessage(message);
 			Toast.makeText(SecondActivity.this, content.getText().toString(), Toast.LENGTH_LONG).show();
 		});
 
@@ -171,6 +167,34 @@ public class SecondActivity extends AppCompatActivity {
 			Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();
 			setResult(RESULT_OK);
 			SecondActivity.this.finish();
+		});
+
+		EditText content = findViewById(R.id.second_EditText);
+		content.setOnClickListener(v -> {
+//				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//				imm.hideSoftInputFromWindow(content.getWindowToken(), 0);
+			Spanned s = content.getText();
+			ImageSpan[] imageSpans = s.getSpans(0, s.length(), ImageSpan.class);
+			int selectionStart = content.getSelectionStart();
+			for (ImageSpan span : imageSpans) {
+				int start = s.getSpanStart(span);
+				int end = s.getSpanEnd(span);
+				if (selectionStart >= start && selectionStart < end){//找到图片
+					String lct = content.getText().toString().substring(start, end);
+					String type = lct.substring(lct.length() - 4);
+					Uri uri = Uri.parse(lct);
+					Bitmap bitmap;
+					if(type.equals(".amr")){
+						playRecord(uri);
+					} else if (type.equals(".jpg")){
+						bitmap = BitmapFactory.decodeFile(lct);
+						viewPicture(bitmap, uri);
+					}
+					return;
+				}
+			}
+			//打开软键盘
+//				imm.showSoftInput(content, 0);
 		});
 
 	}
@@ -246,9 +270,6 @@ public class SecondActivity extends AppCompatActivity {
 		mx.postScale(scaleW, scaleH);
 		bm = Bitmap.createBitmap(bm, 0, 0, imgWidth, imgHeight, mx, true);
 		final ImageSpan imageSpan = new ImageSpan(this, bm);
-//		if (uri != null) {
-//			location = uri.toString();
-//		}
 		SpannableString spannableString = new SpannableString(location);
 		spannableString.setSpan(imageSpan, 0, spannableString.length(), SpannableString.SPAN_MARK_MARK);
 		//光标移到下一行
@@ -256,14 +277,32 @@ public class SecondActivity extends AppCompatActivity {
 		Editable editable = content.getEditableText();
 		int selectionIndex = content.getSelectionStart();
 		spannableString.getSpans(0, spannableString.length(), ImageSpan.class);
-
 		//将图片添加进EditText中
 		editable.insert(selectionIndex, spannableString);
 		//添加图片后自动空出两行
  		content.append("\n");
 	}
 
+	private void viewPicture(Bitmap bitmap, Uri uri) {
+	 if (bitmap == null) {
+		 return;
+	 }
+	 Intent intent = new Intent(SecondActivity.this, ViewPictureActivity.class);
+	 intent.putExtra("path", uri.toString());
+	 startActivity(intent);
+//	 Intent intent = new Intent(Intent.ACTION_VIEW);
+//	 intent.setDataAndType(uri, "image/*");
+//	 startActivity(intent);
+	}
 
+	private void playRecord(Uri uri) {
+		Intent intent = new Intent(SecondActivity.this, RecordActivity.class);
+		intent.putExtra("mode", PLAY_MODE);
+		Bundle bundle = new Bundle();
+		bundle.putString("path", uri.toString());
+		intent.putExtra("data", bundle);
+		startActivity(intent);
+	}
 
 	private void loadEditData(String c) {
 		String[] strings = c.split("\n");

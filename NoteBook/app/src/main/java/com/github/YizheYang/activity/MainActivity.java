@@ -8,11 +8,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListPopupWindow;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
@@ -41,16 +38,16 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
 	private static final int spanCount = 2;
-	private static final int NEW_MODE = 1;
-	private static final int EDIT_MODE = 2;
+	private static final int NEW_MODE = 21;
+	private static final int EDIT_MODE = 22;
 
 	private NoteAdapter adapter;
-	private List<Note> noteList = new ArrayList<>();
+	private final List<Note> noteList = new ArrayList<>();
 	private MySQLiteOpenHelper helper;
 	private SQLiteDatabase db;
 
 	private SearchLayout search;
-	private List<Note> searchList = new ArrayList<>();
+	private final List<Note> searchList = new ArrayList<>();
 	private ListPopupWindow listPopupWindow = null;
 
 	@Override
@@ -86,43 +83,29 @@ public class MainActivity extends AppCompatActivity {
 		adapter = new NoteAdapter(this, noteList);
 		recyclerView.setAdapter(adapter);
 		adapter.setOnItemClickListener((view, position) -> {
-			Note note = noteList.get(position);
-			Intent intent = new Intent(MainActivity.this, SecondActivity.class);
-			intent.putExtra("mode", EDIT_MODE);
-			Bundle bundle = new Bundle();
-			bundle.putString("id", note.id);
-			bundle.putString("title", note.title);
-			bundle.putString("content", note.content);
-			intent.putExtra("data", bundle);
-			startActivityForResult(intent, 1);
+			startSecondActivityWithEditMode(noteList.get(position));
 		});
-		adapter.setOnLongClickListener(new NoteAdapter.OnLongClickListener() {
-			@Override
-			public void OnLongClick(View view, int position) {
-				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this).setTitle("警告").setMessage("是否删除此笔记？")
-						.setPositiveButton("yes", (dialog, which) -> {
-							Note note = noteList.get(position);
-							db.delete("Note", "ID=?", new String[]{note.id});
-							noteList.remove(position);
-							adapter.notifyDataSetChanged();
-							dialog.dismiss();
-						});
-				builder.setNegativeButton("no", (dialog, which) -> dialog.dismiss());
-				builder.create().show();
-			}
+		adapter.setOnLongClickListener((view, position) -> {
+			AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this).setTitle("警告").setMessage("是否删除此笔记？")
+					.setPositiveButton("yes", (dialog, which) -> {
+						Note note = noteList.get(position);
+						db.delete("Note", "ID=?", new String[]{note.id});
+						noteList.remove(position);
+						adapter.notifyDataSetChanged();
+						dialog.dismiss();
+					});
+			builder.setNegativeButton("no", (dialog, which) -> dialog.dismiss());
+			builder.create().show();
 		});
 
 		search = findViewById(R.id.search);
-		String text = search.editText.getText().toString();
 		search.editText.addTextChangedListener(new TextWatcher() {
-
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 				if (listPopupWindow != null) {
 					listPopupWindow.dismiss();
 				}
 				searchList.clear();
-				Log.d("TAG", "beforeTextChanged: ");
 			}
 
 			@Override
@@ -139,13 +122,11 @@ public class MainActivity extends AppCompatActivity {
 						}
 					}
 				}
-				Log.d("TAG", "onTextChanged: ");
 			}
 
 			@Override
 			public void afterTextChanged(Editable s) {
 				showListPopupWindow();
-				Log.d("TAG", "afterTextChanged: ");
 			}
 		});
 
@@ -155,6 +136,31 @@ public class MainActivity extends AppCompatActivity {
 			startActivityForResult(intent, 1);
 		});
 	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		db.close();
+	}
+
+	@Override
+	protected void onRestart() {
+		super.onRestart();
+		db = helper.getWritableDatabase();
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		db = helper.getWritableDatabase();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		db = helper.getWritableDatabase();
+	}
+
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -169,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void loadNoteFromSQLite() {
+		db = helper.getWritableDatabase();
 		Cursor cursor = db.query("Note", null, null, null, null, null, null);
 		if (cursor.moveToFirst()) {
 			do {
@@ -179,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
 				noteList.add(note);
 			}while (cursor.moveToNext());
 		}
+		cursor.close();
 	}
 
 	/**
@@ -203,33 +211,22 @@ public class MainActivity extends AppCompatActivity {
 		listPopupWindow = new ListPopupWindow(this);
 		SimpleAdapter adapter = new SimpleAdapter(this, getAdapterList(searchList), R.layout.search_item
 				, new String[]{"title", "content", "date"}, new int[]{R.id.search_title, R.id.search_content, R.id.search_date});
-		listPopupWindow.setAdapter(adapter);//用android内置布局，或设计自己的样式
-		listPopupWindow.setAnchorView(search.editText);//以哪个控件为基准，在该处以logId为基准
+		listPopupWindow.setAdapter(adapter);
+		listPopupWindow.setAnchorView(search.editText);
 //		listPopupWindow.setModal(true);
 
-		listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {//设置项点击监听
-			@Override
-			public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-				Note note = searchList.get(i);
-				Intent intent = new Intent(MainActivity.this, SecondActivity.class);
-				intent.putExtra("mode", EDIT_MODE);
-				Bundle bundle = new Bundle();
-				bundle.putString("id", note.id);
-				bundle.putString("title", note.title);
-				bundle.putString("content", note.content);
-				intent.putExtra("data", bundle);
-				startActivityForResult(intent, 1);
-				listPopupWindow.dismiss();//如果已经选择了，隐藏起来
-			}
+		listPopupWindow.setOnItemClickListener((adapterView, view, i, l) -> {
+			startSecondActivityWithEditMode(searchList.get(i));
+			listPopupWindow.dismiss();
 		});
-		listPopupWindow.show();//把ListPopWindow展示出来
+		listPopupWindow.show();
 	}
 
 	public List<Map<String,Object>> getAdapterList(List<Note> l) {
-		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
-		Map<String,Object> map = new HashMap<String,Object>();
+		List<Map<String,Object>> list = new ArrayList<>();
+		Map<String,Object> map;
 		for(int i = 0;i < l.size();i++) {
-			map=new HashMap<String,Object>();
+			map= new HashMap<>();
 			map.put("title", l.get(i).title);
 			map.put("content", replaceContent(l.get(i).content));
 			map.put("date", l.get(i).date);
@@ -270,4 +267,14 @@ public class MainActivity extends AppCompatActivity {
 		return false;
 	}
 
+	private void startSecondActivityWithEditMode(Note note) {
+		Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+		intent.putExtra("mode", EDIT_MODE);
+		Bundle bundle = new Bundle();
+		bundle.putString("id", note.id);
+		bundle.putString("title", note.title);
+		bundle.putString("content", note.content);
+		intent.putExtra("data", bundle);
+		startActivityForResult(intent, 1);
+	}
 }
