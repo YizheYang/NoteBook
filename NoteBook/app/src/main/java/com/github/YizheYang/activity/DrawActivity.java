@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageButton;
 
@@ -78,6 +79,24 @@ public class DrawActivity extends AppCompatActivity {
 		eraser.setOnClickListener(v -> {
 			showMoreDialog(drawView);
 		});
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this)
+					.setTitle("警告:")
+					.setMessage("是否退出本页？");
+			builder.setPositiveButton("是", (dialog, which) -> {
+				this.finish();
+				dialog.dismiss();
+			});
+			builder.setNegativeButton("否", (dialog, which) -> dialog.dismiss());
+			builder.create();
+			builder.show();
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 
 	public void showPaintColorDialog(View view) {

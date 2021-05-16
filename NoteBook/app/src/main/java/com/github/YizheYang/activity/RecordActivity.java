@@ -1,6 +1,7 @@
 package com.github.YizheYang.activity;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,6 +17,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -70,6 +72,8 @@ public class RecordActivity extends AppCompatActivity {
 		titleLayout = findViewById(R.id.record_title);
 
 		Intent it = getIntent();
+		int color = it.getIntExtra("color", R.color.white);
+		getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
 		mode = it.getIntExtra("mode", RECORD_MODE);
 		if (mode == PLAY_MODE) {
 			Bundle bundle = it.getBundleExtra("data");
@@ -83,7 +87,7 @@ public class RecordActivity extends AppCompatActivity {
 			file.mkdir();
 		}
 		if (mode == RECORD_MODE) {
-			start.setOnClickListener(v1 -> {
+			start.setOnClickListener(v -> {
 				if (name != null) {
 					File f = new File(path, name);
 					f.delete();
@@ -110,40 +114,57 @@ public class RecordActivity extends AppCompatActivity {
 					e.printStackTrace();
 				}
 				//隐藏开始按钮，显示结束按钮
-				Message message1 = new Message();
-				message1.what = 0;
-				handler.sendMessage(message1);
+				Message message = new Message();
+				message.what = 0;
+				handler.sendMessage(message);
 				//开始计时
 				refreshTime.post(task);
+			});
 
-				finish.setOnClickListener(v2 -> {
-					refreshTime.removeCallbacks(task);
-					try {
-						mediaRecorder.stop();
-					} catch (Exception e) {
-						mediaRecorder = null;
-						mediaRecorder = new MediaRecorder();
-					}
-					mediaRecorder.release();
+			finish.setOnClickListener(v -> {
+				refreshTime.removeCallbacks(task);
+				try {
+					mediaRecorder.stop();
+				} catch (Exception e) {
 					mediaRecorder = null;
-					Message message2 = new Message();
-					message2.what = 2;
-					handler.sendMessage(message2);
-					Toast.makeText(RecordActivity.this, "录制成功", Toast.LENGTH_SHORT).show();
-				});
+					mediaRecorder = new MediaRecorder();
+				}
+				mediaRecorder.release();
+				mediaRecorder = null;
+				Message message = new Message();
+				message.what = 2;
+				handler.sendMessage(message);
+				Toast.makeText(RecordActivity.this, "录制成功", Toast.LENGTH_SHORT).show();
+			});
 
-				titleLayout.save.setOnClickListener(v3 -> {
-					if (mediaRecorder != null) {
-						Toast.makeText(RecordActivity.this, "正在录音，请结束后再保存", Toast.LENGTH_SHORT).show();
-						return;
-					}
-					Intent intent = getIntent();
-					Bundle bundle = new Bundle();
-					bundle.putString("audio", path + "/" + name);
-					intent.putExtras(bundle);
-					setResult(RESULT_OK, intent);
-					RecordActivity.this.finish();
+			titleLayout.save.setOnClickListener(v -> {
+				if (mediaRecorder != null) {
+					Toast.makeText(RecordActivity.this, "正在录音，请结束后再保存", Toast.LENGTH_SHORT).show();
+					return;
+				}
+				Intent intent = new Intent();
+				Bundle bundle = new Bundle();
+				bundle.putString("audio", path + "/" + name);
+				intent.putExtras(bundle);
+				setResult(RESULT_OK, intent);
+				RecordActivity.this.finish();
+			});
+
+			titleLayout.back.setOnClickListener(v -> {
+				if (mediaRecorder != null) {
+					Toast.makeText(this, "请结束录音再退出本页", Toast.LENGTH_SHORT).show();
+					return;
+				}
+				AlertDialog.Builder builder = new AlertDialog.Builder(this)
+						.setTitle("警告:")
+						.setMessage("是否退出本页？");
+				builder.setPositiveButton("是", (dialog, which) -> {
+					this.finish();
+					dialog.dismiss();
 				});
+				builder.setNegativeButton("否", (dialog, which) -> dialog.dismiss());
+				builder.create();
+				builder.show();
 			});
 		} else if (mode == PLAY_MODE) {
 			titleLayout.save.setVisibility(View.INVISIBLE);
@@ -162,9 +183,9 @@ public class RecordActivity extends AppCompatActivity {
 					}
 					player.release();
 					player = null;
-					Message message2 = new Message();
-					message2.what = 2;
-					handler.sendMessage(message2);
+					Message message = new Message();
+					message.what = 2;
+					handler.sendMessage(message);
 					Toast.makeText(RecordActivity.this, "播放完毕", Toast.LENGTH_SHORT).show();
 				}
 			};
@@ -179,9 +200,9 @@ public class RecordActivity extends AppCompatActivity {
 					e.printStackTrace();
 				}
 
-				Message message1 = new Message();
-				message1.what = 0;
-				handler.sendMessage(message1);
+				Message message = new Message();
+				message.what = 0;
+				handler.sendMessage(message);
 
 				refreshTime.post(task);
 			});
@@ -201,6 +222,28 @@ public class RecordActivity extends AppCompatActivity {
 				handler.sendMessage(message2);
 			});
 		}
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+			if (mediaRecorder != null) {
+				Toast.makeText(this, "请结束录音再退出本页", Toast.LENGTH_SHORT).show();
+				return false;
+			}
+			AlertDialog.Builder builder = new AlertDialog.Builder(this)
+					.setTitle("警告:")
+					.setMessage("是否退出本页？");
+			builder.setPositiveButton("是", (dialog, which) -> {
+				this.finish();
+				dialog.dismiss();
+			});
+			builder.setNegativeButton("否", (dialog, which) -> dialog.dismiss());
+			builder.create();
+			builder.show();
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 
 	private final Handler refreshTime = new Handler();

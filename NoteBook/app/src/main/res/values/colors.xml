@@ -8,4 +8,31 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="transparent">#0000</color>
+    <color name="红色">#FF0000</color>
+    <color name="绿色">#00FF00</color>
+    <color name="蓝色">#0000FF</color>
+    <color name="牡丹红">#FF00FF</color>
+    <color name="青色">#00FFFF</color>
+    <color name="黄色">#FFFF00</color>
+    <color name="海蓝">#70DB93</color>
+    <color name="巧克力色">#5C3317</color>
+    <color name="珊瑚红">#FF7F00</color>
+    <color name="深兰花色">#9932CD</color>
+    <color name="深绿松石色">#7093DB</color>
+    <color name="淡灰色">#545454</color>
+    <color name="森林绿">#238E23</color>
+    <color name="金色">#CD7F32</color>
+    <color name="灰色">#C0C0C0</color>
+    <color name="青黄色">#93DB70</color>
+    <color name="石灰绿色">#32CD32</color>
+    <color name="中海蓝色">#32CD99</color>
+    <color name="中木色">#A68064</color>
+
+    <color name="背景黄">#EBDE8B</color>
+    <color name="背景蓝">#608F9F</color>
+    <color name="背景绿">#AEDD81</color>
+    <color name="背景棕">#DE9C53</color>
+    <color name="背景米白">#FFF5F7</color>
+    <color name="背景枣红">#965054</color>
+
 </resources>

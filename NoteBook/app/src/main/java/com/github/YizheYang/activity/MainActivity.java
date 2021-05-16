@@ -1,15 +1,35 @@
 package com.github.YizheYang.activity;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListPopupWindow;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
@@ -24,8 +44,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.YizheYang.MySQLiteOpenHelper;
-import com.github.YizheYang.Note;
-import com.github.YizheYang.NoteAdapter;
+import com.github.YizheYang.recyclerview.Note;
+import com.github.YizheYang.recyclerview.NoteAdapter;
 import com.github.YizheYang.R;
 import com.github.YizheYang.layout.SearchLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -40,7 +60,12 @@ public class MainActivity extends AppCompatActivity {
 	private static final int spanCount = 2;
 	private static final int NEW_MODE = 21;
 	private static final int EDIT_MODE = 22;
+	private static final int REQUEST_SECOND = 1;
+	private static final int REQUEST_SETTING = 2;
+	private static final int REQUEST_SECRET = 3;
+	private static final String TAG = "MainActivity";
 
+	private RecyclerView recyclerView;
 	private NoteAdapter adapter;
 	private final List<Note> noteList = new ArrayList<>();
 	private MySQLiteOpenHelper helper;
@@ -49,6 +74,20 @@ public class MainActivity extends AppCompatActivity {
 	private SearchLayout search;
 	private final List<Note> searchList = new ArrayList<>();
 	private ListPopupWindow listPopupWindow = null;
+
+	private boolean isExit = false;
+
+	private LinearLayout linearLayout;
+	private ImageView background;
+
+	private int secret = 0;
+	private static final int SECRET_MODE = 3;
+	private boolean isSecret = false;
+	private final List<Note> secretList = new ArrayList<>();
+	private String password;
+
+	private int color = R.color.white;
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -62,23 +101,52 @@ public class MainActivity extends AppCompatActivity {
 			case R.id.mainItem:
 				Toast.makeText(MainActivity.this, "1", Toast.LENGTH_SHORT).show();
 				break;
+			case R.id.setting:
+				Intent intent = new Intent(MainActivity.this, SettingActivity.class);
+				intent.putExtra("color", color);
+				intent.putExtra("password", password);
+//				Bundle bundle = new Bundle();
+//				bundle.putString("password", password);
+//				intent.putExtras(bundle);
+				startActivityForResult(intent, REQUEST_SETTING);
+				break;
 			default:
 		}
 		return true;
 	}
 
+	private final Handler handler = new Handler(Looper.getMainLooper()) {
+		@Override
+		public void handleMessage(@NonNull Message msg) {
+			super.handleMessage(msg);
+			if (msg.what == 0) {
+				isExit = false;
+			}else if (msg.what == 1) {
+				secret = 0;
+			}
+		}
+	};
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+//		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+//		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.activity_main);
 
+
 		requestPower();
-		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null, 1);
+		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null);
 		db = helper.getWritableDatabase();
-
+//		linearLayout = findViewById(R.id.main_linearLayout);
+//		background = findViewById(R.id.background);
 		loadNoteFromSQLite();
+		loadPasswordFromSQLite();
+		loadColorFromSQLite();
 
-		RecyclerView recyclerView = findViewById(R.id.recyclerView);
+
+		recyclerView = findViewById(R.id.recyclerView);
 		recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
 		adapter = new NoteAdapter(this, noteList);
 		recyclerView.setAdapter(adapter);
@@ -98,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
 			builder.create().show();
 		});
 
-		search = findViewById(R.id.search);
+		search = findViewById(R.id.main_search);
 		search.editText.addTextChangedListener(new TextWatcher() {
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -127,13 +195,43 @@ public class MainActivity extends AppCompatActivity {
 			@Override
 			public void afterTextChanged(Editable s) {
 				showListPopupWindow();
+				if (search.editText.getText().toString().equals("")) {
+					recyclerView.setAdapter(adapter);
+				}
+			}
+		});
+
+		search.button.setOnClickListener(v -> {
+			if (!search.editText.getText().toString().equals("")) {
+				NoteAdapter searchAdapter = new NoteAdapter(this, searchList);
+				recyclerView.setAdapter(searchAdapter);
+			}else if (search.editText.getText().toString().equals("")) {
+				recyclerView.setAdapter(adapter);
+			}
+		});
+
+		search.imageView.setOnClickListener(v -> {
+			secret++;
+			handler.sendEmptyMessageDelayed(1, 1000);
+			if (!isSecret && secret == SECRET_MODE) {
+				secret = 0;
+				Intent intent = new Intent(MainActivity.this, SecretActivity.class);
+				intent.putExtra("password", password);
+				startActivityForResult(intent, 3);
 			}
 		});
 
 		FloatingActionButton fab = findViewById(R.id.floatButton);
 		fab.setOnClickListener(v -> {
+			if (isSecret) {
+				Toast.makeText(this, "退出隐私空间", Toast.LENGTH_SHORT).show();
+				recyclerView.setAdapter(adapter);
+				isSecret = false;
+				return;
+			}
 			Intent intent = new Intent(MainActivity.this, SecondActivity.class);
-			startActivityForResult(intent, 1);
+			intent.putExtra("color", color);
+			startActivityForResult(intent, REQUEST_SECOND);
 		});
 	}
 
@@ -161,32 +259,116 @@ public class MainActivity extends AppCompatActivity {
 		db = helper.getWritableDatabase();
 	}
 
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+			if (!isExit) {
+				isExit = true;
+				Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
+				handler.sendEmptyMessageDelayed(0, 1000);
+			} else {
+				finish();
+				System.exit(0);
+			}
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if (requestCode == 1) {
+		if (requestCode == REQUEST_SECOND) {
 			if (resultCode == RESULT_OK) {
 				noteList.clear();
 				loadNoteFromSQLite();
 				adapter.notifyDataSetChanged();
+			}
+		} else if (requestCode == REQUEST_SETTING) {
+			if (resultCode == RESULT_OK) {
+				loadPasswordFromSQLite();
+				int oldColor = color;
+				color = data.getIntExtra("color", 0);
+				if (color != 0) {
+					getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
+					ContentValues values = new ContentValues();
+					values.put("COLOR", color);
+					db.update("Color", values, "COLOR=?", new String[]{String.valueOf(oldColor)});
+				}
+
+////				int color = data.getIntExtra("color", 0);
+//				String path = data.getStringExtra("path");
+//				Bitmap bitmap = BitmapFactory.decodeFile(path);
+//
+////				Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+////
+//				Message message = new Message();
+//				message.what = 1;
+//				message.obj = bitmap;
+//				handler.sendMessage(message);
+////				linearLayout.setBackground(drawable);
+			}
+		}else if (requestCode == REQUEST_SECRET) {
+			if (resultCode == RESULT_OK) {
+				isSecret = data.getBooleanExtra("isCorrect", false);
+				if (isSecret) {
+					Toast.makeText(MainActivity.this, "进入隐私空间", Toast.LENGTH_SHORT).show();
+					NoteAdapter secretAdapter = new NoteAdapter(this, secretList);
+					recyclerView.setAdapter(secretAdapter);
+				}
 			}
 		}
 	}
 
 	private void loadNoteFromSQLite() {
 		db = helper.getWritableDatabase();
-		Cursor cursor = db.query("Note", null, null, null, null, null, null);
+		Cursor cursor1 = db.query("Note", null, "SECRET=?", new String[]{String.valueOf(0)}, null, null, null);
+		if (cursor1.moveToFirst()) {
+			do {
+				Note note = new Note(cursor1.getString(cursor1.getColumnIndex("ID"))
+						, cursor1.getString(cursor1.getColumnIndex("TITLE"))
+						, cursor1.getString(cursor1.getColumnIndex("CONTENT"))
+						, cursor1.getString(cursor1.getColumnIndex("DATE"))
+						, cursor1.getInt(cursor1.getColumnIndex("SECRET")));
+				noteList.add(note);
+			}while (cursor1.moveToNext());
+		}
+		Cursor cursor2 = db.query("Note", null, "SECRET=?", new String[]{String.valueOf(1)}, null, null, null);
+		if (cursor2.moveToFirst()) {
+			do {
+				Note note = new Note(cursor2.getString(cursor2.getColumnIndex("ID"))
+						, cursor2.getString(cursor2.getColumnIndex("TITLE"))
+						, cursor2.getString(cursor2.getColumnIndex("CONTENT"))
+						, cursor2.getString(cursor2.getColumnIndex("DATE"))
+						, cursor2.getInt(cursor2.getColumnIndex("SECRET")));
+				secretList.add(note);
+			}while (cursor2.moveToNext());
+		}
+		cursor1.close();
+		cursor2.close();
+	}
+
+	private void loadPasswordFromSQLite() {
+		db = helper.getWritableDatabase();
+		Cursor cursor = db.query("Password", null, null, null, null, null, null);
 		if (cursor.moveToFirst()) {
 			do {
-				Note note = new Note(cursor.getString(cursor.getColumnIndex("ID"))
-						, cursor.getString(cursor.getColumnIndex("TITLE"))
-						, cursor.getString(cursor.getColumnIndex("CONTENT"))
-						, cursor.getString(cursor.getColumnIndex("DATE")));
-				noteList.add(note);
+				password = cursor.getString(cursor.getColumnIndex("PASSWORD"));
 			}while (cursor.moveToNext());
 		}
 		cursor.close();
+	}
+
+	private void loadColorFromSQLite() {
+		db = helper.getWritableDatabase();
+		Cursor cursor = db.query("Color", null, null, null, null, null, null);
+		if (cursor.moveToFirst()) {
+			do {
+				color = cursor.getInt(cursor.getColumnIndex("COLOR"));
+			}while (cursor.moveToNext());
+		}
+		cursor.close();
+		getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
 	}
 
 	/**
@@ -214,7 +396,6 @@ public class MainActivity extends AppCompatActivity {
 		listPopupWindow.setAdapter(adapter);
 		listPopupWindow.setAnchorView(search.editText);
 //		listPopupWindow.setModal(true);
-
 		listPopupWindow.setOnItemClickListener((adapterView, view, i, l) -> {
 			startSecondActivityWithEditMode(searchList.get(i));
 			listPopupWindow.dismiss();
@@ -277,4 +458,5 @@ public class MainActivity extends AppCompatActivity {
 		intent.putExtra("data", bundle);
 		startActivityForResult(intent, 1);
 	}
+
 }

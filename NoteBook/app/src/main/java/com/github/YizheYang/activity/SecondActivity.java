@@ -1,18 +1,16 @@
 package com.github.YizheYang.activity;
 
-import android.Manifest;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,42 +21,29 @@ import android.os.Message;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.text.Editable;
-import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ImageSpan;
 import android.util.Log;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
+import android.view.KeyEvent;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.LongDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.loader.content.CursorLoader;
 
 import com.github.YizheYang.MySQLiteOpenHelper;
 import com.github.YizheYang.MyTimer;
-import com.github.YizheYang.Note;
+import com.github.YizheYang.recyclerview.Note;
 import com.github.YizheYang.R;
 import com.github.YizheYang.layout.Title;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class SecondActivity extends AppCompatActivity {
 
@@ -82,6 +67,9 @@ public class SecondActivity extends AppCompatActivity {
 	private MyTimer myTimer;
 	private MySQLiteOpenHelper helper;
 
+	private int secret = 0;
+	private CheckBox checkBox;
+
 	Handler handler = new Handler(Looper.getMainLooper()) {
 		@Override
 		public void handleMessage(@NonNull Message msg) {
@@ -91,6 +79,10 @@ public class SecondActivity extends AppCompatActivity {
 				editId = note.id;
 				title.setText(note.title);
 				loadEditData(note.content);
+				secret = note.secret;
+				if (secret == 1) {
+					checkBox.setChecked(true);
+				}
 			}
 		}
 	};
@@ -100,14 +92,17 @@ public class SecondActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_second);
 
-		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null, 1);
+		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null);
 		helper.getWritableDatabase();
 		myTimer = new MyTimer();
 		title = findViewById(R.id.first_EditText);
 		content = findViewById(R.id.second_EditText);
 		Button testButton = findViewById(R.id.test2);
+		checkBox = findViewById(R.id.checkbox);
 
 		Intent it = getIntent();
+		int color = it.getIntExtra("color", R.color.white);
+		getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
 		mode = it.getIntExtra("mode", NEW_MODE);
 		if (mode == EDIT_MODE) {
 			Bundle bundle = it.getBundleExtra("data");
@@ -140,6 +135,7 @@ public class SecondActivity extends AppCompatActivity {
 		ImageButton ibt3 = findViewById(R.id.record);
 		ibt3.setOnClickListener(v -> {
 			Intent intent = new Intent(SecondActivity.this, RecordActivity.class);
+			intent.putExtra("color", color);
 			startActivityForResult(intent, RECORD);
 		});
 
@@ -149,6 +145,17 @@ public class SecondActivity extends AppCompatActivity {
 			startActivityForResult(intent, DRAW);
 		});
 
+		checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (isChecked) {
+					secret = 1;
+				}else if (!isChecked) {
+					secret = 0;
+				}
+			}
+		});
+
 		Title t = findViewById(R.id.second_title);
 		t.save.setOnClickListener(v -> {
 			SQLiteDatabase db = helper.getWritableDatabase();
@@ -156,12 +163,14 @@ public class SecondActivity extends AppCompatActivity {
 				ContentValues values = new ContentValues();
 				values.put("TITLE", title.getText().toString());
 				values.put("CONTENT", content.getText().toString());
+				values.put("SECRET", secret);
 				db.update("Note", values, "ID=?", new String[]{editId});
 			} else if (mode == NEW_MODE){
 				ContentValues values = new ContentValues();
 				values.put("TITLE", title.getText().toString());
 				values.put("CONTENT", content.getText().toString());
 				values.put("DATE", myTimer.getDate());
+				values.put("SECRET", secret);
 				db.insert("Note", null, values);
 			}
 			Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();
@@ -253,6 +262,24 @@ public class SecondActivity extends AppCompatActivity {
 			}
 		scaleBitmap(bm,location);
 		}
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this)
+					.setTitle("警告:")
+					.setMessage("是否退出本页？");
+			builder.setPositiveButton("是", (dialog, which) -> {
+				this.finish();
+				dialog.dismiss();
+			});
+			builder.setNegativeButton("否", (dialog, which) -> dialog.dismiss());
+			builder.create();
+			builder.show();
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 
 	private void scaleBitmap(Bitmap bm, String location) {

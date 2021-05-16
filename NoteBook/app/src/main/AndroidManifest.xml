@@ -36,6 +36,13 @@
             android:name=".activity.ViewPictureActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:launchMode="singleTask"/>
+        <activity
+            android:name=".activity.SettingActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:name=".activity.SecretActivity"
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:launchMode="singleTask"/>
 
     </application>
 

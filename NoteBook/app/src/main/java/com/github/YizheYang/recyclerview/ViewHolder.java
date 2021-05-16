@@ -1,10 +1,12 @@
-package com.github.YizheYang;
+package com.github.YizheYang.recyclerview;
 
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.github.YizheYang.R;
 
 public class ViewHolder extends RecyclerView.ViewHolder {
 	TextView title;
