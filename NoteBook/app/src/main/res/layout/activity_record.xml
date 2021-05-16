@@ -32,7 +32,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/record_icon"
-        android:src="@drawable/record_start"
+        android:src="@drawable/baseline_play_arrow_black_48"
         android:background="@color/transparent"
         android:layout_alignStart="@+id/record_icon"/>
 
@@ -41,7 +41,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/record_icon"
-        android:src="@drawable/record_finish"
+        android:src="@drawable/baseline_stop_black_48"
         android:background="@color/transparent"
         android:layout_alignEnd="@+id/record_icon"
         android:visibility="invisible"

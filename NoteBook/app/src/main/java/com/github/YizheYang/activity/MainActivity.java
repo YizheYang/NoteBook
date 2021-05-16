@@ -67,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
 	private RecyclerView recyclerView;
 	private NoteAdapter adapter;
+	private NoteAdapter searchAdapter;
+	private NoteAdapter secretAdapter;
 	private final List<Note> noteList = new ArrayList<>();
 	private MySQLiteOpenHelper helper;
 	private SQLiteDatabase db;
@@ -182,29 +184,48 @@ public class MainActivity extends AppCompatActivity {
 					searchList.clear();
 					return;
 				}
-				for (int i = 0; i < noteList.size(); i++) {
-					Note note = noteList.get(i);
-					if (note.content.length() >= s.length()) {
-						if (isRepeat(replaceContent(note.content), s.toString())) {
-							searchList.add(note);
+				if (!isSecret) {
+					for (int i = 0; i < noteList.size(); i++) {
+						Note note = noteList.get(i);
+						if (note.content.length() >= s.length()) {
+							if (isRepeat(replaceContent(note.content), s.toString())) {
+								searchList.add(note);
+							}
+						}
+					}
+				}else {
+					for (int i = 0; i < secretList.size(); i++) {
+						Note note = secretList.get(i);
+						if (note.content.length() >= s.length()) {
+							if (isRepeat(replaceContent(note.content), s.toString())) {
+								searchList.add(note);
+							}
 						}
 					}
 				}
+
 			}
 
 			@Override
 			public void afterTextChanged(Editable s) {
 				showListPopupWindow();
 				if (search.editText.getText().toString().equals("")) {
-					recyclerView.setAdapter(adapter);
+					if (!isSecret){
+						recyclerView.setAdapter(adapter);
+					}else {
+						recyclerView.setAdapter(secretAdapter);
+					}
 				}
 			}
 		});
 
 		search.button.setOnClickListener(v -> {
 			if (!search.editText.getText().toString().equals("")) {
-				NoteAdapter searchAdapter = new NoteAdapter(this, searchList);
+				searchAdapter = new NoteAdapter(this, searchList);
 				recyclerView.setAdapter(searchAdapter);
+				searchAdapter.setOnItemClickListener((view, position) -> {
+					startSecondActivityWithEditMode(searchList.get(position));
+				});
 			}else if (search.editText.getText().toString().equals("")) {
 				recyclerView.setAdapter(adapter);
 			}
@@ -313,8 +334,14 @@ public class MainActivity extends AppCompatActivity {
 				isSecret = data.getBooleanExtra("isCorrect", false);
 				if (isSecret) {
 					Toast.makeText(MainActivity.this, "进入隐私空间", Toast.LENGTH_SHORT).show();
-					NoteAdapter secretAdapter = new NoteAdapter(this, secretList);
+					secretAdapter = new NoteAdapter(this, secretList);
 					recyclerView.setAdapter(secretAdapter);
+					secretAdapter.setOnItemClickListener(new NoteAdapter.OnItemClickListener() {
+						@Override
+						public void onItemClick(View view, int position) {
+							startSecondActivityWithEditMode(secretList.get(position));
+						}
+					});
 				}
 			}
 		}
@@ -451,6 +478,7 @@ public class MainActivity extends AppCompatActivity {
 	private void startSecondActivityWithEditMode(Note note) {
 		Intent intent = new Intent(MainActivity.this, SecondActivity.class);
 		intent.putExtra("mode", EDIT_MODE);
+		intent.putExtra("color", color);
 		Bundle bundle = new Bundle();
 		bundle.putString("id", note.id);
 		bundle.putString("title", note.title);

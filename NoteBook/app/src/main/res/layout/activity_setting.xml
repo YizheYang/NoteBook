@@ -7,96 +7,109 @@
 
     <RadioGroup
         android:id="@+id/radioGroup1"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="5dp"
         android:layout_gravity="center">
 
+        <RadioButton
+            android:id="@+id/beijinghong"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="32dp"/>
         <androidx.cardview.widget.CardView
-            android:layout_width="20dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="20dp"
             android:backgroundTint="@color/背景枣红"
             app:cardCornerRadius="5dp"
-            android:layout_gravity="center"/>
-
-        <RadioButton
-            android:id="@+id/beijinghong"
-            android:layout_width="36dp"
-            android:layout_height="36dp"/>
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:backgroundTint="@color/背景绿"
-            app:cardCornerRadius="5dp"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"/>
 
         <RadioButton
             android:id="@+id/beijinglv"
-            android:layout_width="36dp"
-            android:layout_height="36dp"/>
-
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="32dp"/>
         <androidx.cardview.widget.CardView
-            android:layout_width="20dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="20dp"
-            android:backgroundTint="@color/背景黄"
+            android:backgroundTint="@color/背景绿"
             app:cardCornerRadius="5dp"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"/>
 
         <RadioButton
             android:id="@+id/beijinghuang"
-            android:layout_width="36dp"
-            android:layout_height="36dp"/>
-
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="32dp"/>
         <androidx.cardview.widget.CardView
-            android:layout_width="20dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="20dp"
-            android:backgroundTint="@color/背景棕"
+            android:backgroundTint="@color/背景黄"
             app:cardCornerRadius="5dp"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"/>
 
         <RadioButton
             android:id="@+id/beijingzong"
-            android:layout_width="36dp"
-            android:layout_height="36dp"/>
-
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="32dp"/>
         <androidx.cardview.widget.CardView
-            android:layout_width="20dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="20dp"
-            android:backgroundTint="@color/背景蓝"
+            android:backgroundTint="@color/背景棕"
             app:cardCornerRadius="5dp"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"/>
 
         <RadioButton
             android:id="@+id/beijinglan"
-            android:layout_width="36dp"
-            android:layout_height="36dp"/>
-
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="32dp"/>
         <androidx.cardview.widget.CardView
-            android:layout_width="20dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="20dp"
-            android:backgroundTint="@color/中木色"
+            android:backgroundTint="@color/背景蓝"
             app:cardCornerRadius="5dp"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"/>
 
         <RadioButton
             android:id="@+id/zhongmuse"
-            android:layout_width="36dp"
-            android:layout_height="36dp"/>
-
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="32dp"/>
         <androidx.cardview.widget.CardView
-            android:layout_width="20dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="20dp"
-            android:backgroundTint="@color/背景米白"
+            android:backgroundTint="@color/中木色"
             app:cardCornerRadius="5dp"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"/>
 
         <RadioButton
             android:id="@+id/beijingmibai"
-            android:layout_width="36dp"
-            android:layout_height="36dp"/>
-
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="32dp"/>
+        <androidx.cardview.widget.CardView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="20dp"
+            android:backgroundTint="@color/背景米白"
+            app:cardCornerRadius="5dp"
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"/>
     </RadioGroup>
 
     <com.google.android.material.button.MaterialButton
@@ -113,7 +126,8 @@
         android:layout_height="60dp"
         android:backgroundTint="@color/transparent"
         android:text="自定义背景图片"
-        android:textColor="@color/black"/>
+        android:textColor="@color/black"
+        android:visibility="invisible"/>
 
     <EditText
         android:id="@+id/setting_oldPassword"

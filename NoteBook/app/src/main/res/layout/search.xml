@@ -9,7 +9,7 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_marginStart="5dp"
-        android:src="@drawable/magnifier"
+        android:src="@drawable/baseline_search_black_48"
         android:layout_gravity="center"/>
 
     <EditText

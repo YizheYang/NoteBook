@@ -9,7 +9,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="@color/transparent"
-        android:src="@drawable/back" />
+        android:src="@drawable/baseline_arrow_back_black_48" />
 
     <TextView
         android:id="@+id/title"
@@ -24,6 +24,6 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="@color/transparent"
-        android:src="@drawable/save" />
+        android:src="@drawable/baseline_save_black_48" />
 
 </LinearLayout>

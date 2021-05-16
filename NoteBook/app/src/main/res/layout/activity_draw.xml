@@ -22,51 +22,57 @@
 
         <ImageButton
             android:id="@+id/revoke"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="10dp"
             android:background="@color/transparent"
-            android:src="@drawable/last"/>
+            android:src="@drawable/baseline_undo_black_48"/>
 
         <ImageButton
             android:id="@+id/resume"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="10dp"
             android:background="@color/transparent"
-            android:src="@drawable/recovery"/>
+            android:src="@drawable/baseline_redo_black_48"/>
 
         <ImageButton
             android:id="@+id/penSize"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="10dp"
             android:background="@color/transparent"
-            android:src="@drawable/pensize"/>
+            android:src="@drawable/baseline_text_fields_black_48"/>
 
         <ImageButton
             android:id="@+id/board"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="10dp"
             android:background="@color/transparent"
-            android:src="@drawable/board"/>
+            android:src="@drawable/baseline_color_lens_black_48"/>
 
         <ImageButton
             android:id="@+id/eraser"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="10dp"
             android:background="@color/transparent"
-            android:src="@drawable/eraser"/>
+            android:src="@drawable/baseline_cleaning_services_black_48"/>
 
         <ImageButton
             android:id="@+id/remove"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="10dp"
             android:background="@color/transparent"
-            android:src="@drawable/delete"/>
+            android:src="@drawable/baseline_delete_black_48"/>
     </LinearLayout>
 
 

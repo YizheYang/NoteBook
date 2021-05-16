@@ -35,7 +35,7 @@
             android:id="@+id/add_picture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/addpic"
+            android:src="@drawable/baseline_image_black_48"
             android:background="@color/transparent"
             android:layout_marginStart="10dp"/>
 
@@ -43,7 +43,7 @@
             android:id="@+id/camera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/camera"
+            android:src="@drawable/baseline_photo_camera_black_48"
             android:background="@color/transparent"
             android:layout_marginStart="10dp"/>
 
@@ -51,7 +51,7 @@
             android:id="@+id/record"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/record"
+            android:src="@drawable/baseline_mic_black_48"
             android:background="@color/transparent"
             android:layout_marginStart="10dp"/>
 
@@ -59,18 +59,20 @@
             android:id="@+id/draw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/draw"
+            android:src="@drawable/baseline_draw_black_48"
             android:background="@color/transparent"
             android:layout_marginStart="10dp"/>
 
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_lock_black_48"
+            android:layout_marginStart="10dp"/>
         <CheckBox
             android:id="@+id/checkbox"
-            android:layout_width="60dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="10dp"
-            android:layout_gravity="center"
-            android:text="私密"/>
-
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center" />
 
         <Button
             android:id="@+id/test2"

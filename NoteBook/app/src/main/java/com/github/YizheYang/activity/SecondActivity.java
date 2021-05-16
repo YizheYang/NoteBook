@@ -99,18 +99,22 @@ public class SecondActivity extends AppCompatActivity {
 		content = findViewById(R.id.second_EditText);
 		Button testButton = findViewById(R.id.test2);
 		checkBox = findViewById(R.id.checkbox);
+		Title t = findViewById(R.id.second_title);
 
 		Intent it = getIntent();
 		int color = it.getIntExtra("color", R.color.white);
 		getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
 		mode = it.getIntExtra("mode", NEW_MODE);
 		if (mode == EDIT_MODE) {
+			t.title.setText("编辑");
 			Bundle bundle = it.getBundleExtra("data");
 			Note note = new Note(bundle.getString("id"), bundle.getString("title"), bundle.getString("content"), bundle.getString("date"));
 			Message message = new Message();
 			message.what = 1;
 			message.obj = note;
 			handler.sendMessage(message);
+		}else {
+			t.title.setText("新建");
 		}
 
 		testButton.setOnClickListener(v -> {
@@ -156,7 +160,7 @@ public class SecondActivity extends AppCompatActivity {
 			}
 		});
 
-		Title t = findViewById(R.id.second_title);
+
 		t.save.setOnClickListener(v -> {
 			SQLiteDatabase db = helper.getWritableDatabase();
 			if (mode == EDIT_MODE) {

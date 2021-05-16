@@ -39,6 +39,7 @@ public class DrawActivity extends AppCompatActivity {
 		setContentView(R.layout.activity_draw);
 
 		title = findViewById(R.id.draw_title);
+		title.title.setText("画板");
 		title.save.setOnClickListener(v -> {
 			MyTimer mt = new MyTimer();
 			String name = "tempDraw_" + mt.getTime();

@@ -25,6 +25,15 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL(CREATE);
+		db.execSQL("ALTER TABLE Note ADD COLUMN SECRET integer");
+		db.execSQL("CREATE table Password (ID integer primary key autoincrement, PASSWORD text)");
+		ContentValues values2 = new ContentValues();
+		values2.put("PASSWORD", "000");
+		db.insert("Password", null, values2);
+		db.execSQL("CREATE TABLE Color (ID integer primary key autoincrement, COLOR INTEGER)");
+		ContentValues values3 = new ContentValues();
+		values3.put("COLOR", 2131099845);
+		db.insert("Color", null, values3);
 		Toast.makeText(mContext, "database create success", Toast.LENGTH_SHORT).show();
 	}
 
