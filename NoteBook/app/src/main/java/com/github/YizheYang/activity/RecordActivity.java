@@ -6,6 +6,8 @@ import android.app.Application;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.media.VolumeShaper;
@@ -20,6 +22,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,8 +43,6 @@ import java.util.Timer;
 
 public class RecordActivity extends AppCompatActivity {
 
-	private static final String TAG = "RecordActivity";
-
 	private static final int RECORD_MODE = 31;
 	private static final int PLAY_MODE = 32;
 	private int mode;
@@ -56,9 +57,9 @@ public class RecordActivity extends AppCompatActivity {
 	private String path;// = Environment.getExternalStorageDirectory().getAbsolutePath();
 	private String name = null;
 	private MediaRecorder mediaRecorder;
-	private Timer timer;
-	private ImageButton save;
-	private boolean recording = false;
+
+	private ImageView background;
+	private String bgPath;
 
 	@RequiresApi(api = Build.VERSION_CODES.Q)
 	@Override
@@ -70,10 +71,16 @@ public class RecordActivity extends AppCompatActivity {
 		start = findViewById(R.id.record_start);
 		finish = findViewById(R.id.record_finish);
 		titleLayout = findViewById(R.id.record_title);
+		background = findViewById(R.id.second_background);
 
 		Intent it = getIntent();
 		int color = it.getIntExtra("color", R.color.white);
 		getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
+		bgPath = it.getStringExtra("path");
+		if (bgPath != null && !bgPath.equals("")) {
+			handler.sendEmptyMessage(3);
+		}
+
 		mode = it.getIntExtra("mode", RECORD_MODE);
 		if (mode == PLAY_MODE) {
 			Bundle bundle = it.getBundleExtra("data");
@@ -170,24 +177,21 @@ public class RecordActivity extends AppCompatActivity {
 			titleLayout.save.setVisibility(View.INVISIBLE);
 			titleLayout.save.setClickable(false);
 
-			MediaPlayer.OnCompletionListener onCompletionListener = new MediaPlayer.OnCompletionListener() {
-				@Override
-				public void onCompletion(MediaPlayer mp) {
-					refreshTime.removeCallbacks(task);
+			MediaPlayer.OnCompletionListener onCompletionListener = mp -> {
+				refreshTime.removeCallbacks(task);
 
-					try {
-						player.stop();
-					}catch (Exception e) {
-						player = null;
-						player = new MediaPlayer();
-					}
-					player.release();
+				try {
+					player.stop();
+				}catch (Exception e) {
 					player = null;
-					Message message = new Message();
-					message.what = 2;
-					handler.sendMessage(message);
-					Toast.makeText(RecordActivity.this, "播放完毕", Toast.LENGTH_SHORT).show();
+					player = new MediaPlayer();
 				}
+				player.release();
+				player = null;
+				Message message = new Message();
+				message.what = 2;
+				handler.sendMessage(message);
+				Toast.makeText(RecordActivity.this, "播放完毕", Toast.LENGTH_SHORT).show();
 			};
 			start.setOnClickListener(v -> {
 				player = new MediaPlayer();
@@ -307,6 +311,10 @@ public class RecordActivity extends AppCompatActivity {
 					finish.setVisibility(View.INVISIBLE);
 					start.setClickable(true);
 					start.setVisibility(View.VISIBLE);
+					break;
+				case 3:
+					Bitmap bitmap = BitmapFactory.decodeFile(bgPath);
+					background.setImageBitmap(bitmap);
 					break;
 			}
 		}

@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--<FrameLayout xmlns:tools="http://schemas.android.com/tools"-->
-<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
-<!--     android:layout_height="match_parent"-->
-<!--    android:layout_width="match_parent"-->
-<!--    android:background="@color/transparent">-->
+<FrameLayout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:background="@color/transparent">
 
+    <ImageView
+        android:id="@+id/main_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
     <LinearLayout xmlns:tools="http://schemas.android.com/tools"
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -45,8 +49,5 @@
         </RelativeLayout>
     </LinearLayout>
 
-<!--    <ImageView-->
-<!--        android:id="@+id/background"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"/>-->
-<!--</FrameLayout>-->
+
+</FrameLayout>

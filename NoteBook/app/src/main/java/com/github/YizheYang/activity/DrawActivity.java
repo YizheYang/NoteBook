@@ -20,14 +20,7 @@ import com.github.YizheYang.layout.Title;
 
 public class DrawActivity extends AppCompatActivity {
 
-	private Title title;
 	private DrawView drawView;
-	private ImageButton revoke;
-	private ImageButton resume;
-	private ImageButton remove;
-	private ImageButton penSize;
-	private ImageButton board;
-	private ImageButton eraser;
 
 	private int select_color = 0;
 	private int select_size = 0;
@@ -38,7 +31,7 @@ public class DrawActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_draw);
 
-		title = findViewById(R.id.draw_title);
+		Title title = findViewById(R.id.draw_title);
 		title.title.setText("画板");
 		title.save.setOnClickListener(v -> {
 			MyTimer mt = new MyTimer();
@@ -56,30 +49,18 @@ public class DrawActivity extends AppCompatActivity {
 
 		drawView = findViewById(R.id.drawView);
 
-		revoke = findViewById(R.id.revoke);
-		revoke.setOnClickListener(v -> {
-			drawView.revoke();
-		});
-		resume = findViewById(R.id.resume);
-		resume.setOnClickListener(v -> {
-			drawView.resume();
-		});
-		remove = findViewById(R.id.remove);
-		remove.setOnClickListener(v -> {
-			drawView.remove();
-		});
-		penSize = findViewById(R.id.penSize);
-		penSize.setOnClickListener(v -> {
-			showPaintSizeDialog(drawView);
-		});
-		board = findViewById(R.id.board);
-		board.setOnClickListener(v -> {
-			showPaintColorDialog(drawView);
-		});
-		eraser = findViewById(R.id.eraser);
-		eraser.setOnClickListener(v -> {
-			showMoreDialog(drawView);
-		});
+		ImageButton revoke = findViewById(R.id.revoke);
+		revoke.setOnClickListener(v -> drawView.revoke());
+		ImageButton resume = findViewById(R.id.resume);
+		resume.setOnClickListener(v -> drawView.resume());
+		ImageButton remove = findViewById(R.id.remove);
+		remove.setOnClickListener(v -> drawView.remove());
+		ImageButton penSize = findViewById(R.id.penSize);
+		penSize.setOnClickListener(v -> showPaintSizeDialog(drawView));
+		ImageButton board = findViewById(R.id.board);
+		board.setOnClickListener(v -> showPaintColorDialog(drawView));
+		ImageButton eraser = findViewById(R.id.eraser);
+		eraser.setOnClickListener(v -> showMoreDialog(drawView));
 	}
 
 	@Override

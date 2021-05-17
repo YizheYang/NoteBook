@@ -31,6 +31,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -43,7 +44,10 @@ import com.github.YizheYang.recyclerview.Note;
 import com.github.YizheYang.R;
 import com.github.YizheYang.layout.Title;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class SecondActivity extends AppCompatActivity {
 
@@ -70,6 +74,9 @@ public class SecondActivity extends AppCompatActivity {
 	private int secret = 0;
 	private CheckBox checkBox;
 
+	private ImageView background;
+	private String path;
+
 	Handler handler = new Handler(Looper.getMainLooper()) {
 		@Override
 		public void handleMessage(@NonNull Message msg) {
@@ -83,6 +90,9 @@ public class SecondActivity extends AppCompatActivity {
 				if (secret == 1) {
 					checkBox.setChecked(true);
 				}
+			}else if (msg.what == 2) {
+				Bitmap bitmap = BitmapFactory.decodeFile(path);
+				background.setImageBitmap(bitmap);
 			}
 		}
 	};
@@ -104,6 +114,12 @@ public class SecondActivity extends AppCompatActivity {
 		Intent it = getIntent();
 		int color = it.getIntExtra("color", R.color.white);
 		getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
+		path = it.getStringExtra("path");
+		background = findViewById(R.id.second_background);
+		if (path != null && !path.equals("")) {
+			handler.sendEmptyMessage(2);
+		}
+
 		mode = it.getIntExtra("mode", NEW_MODE);
 		if (mode == EDIT_MODE) {
 			t.title.setText("编辑");
@@ -117,9 +133,7 @@ public class SecondActivity extends AppCompatActivity {
 			t.title.setText("新建");
 		}
 
-		testButton.setOnClickListener(v -> {
-			Toast.makeText(SecondActivity.this, content.getText().toString(), Toast.LENGTH_LONG).show();
-		});
+		testButton.setOnClickListener(v -> Toast.makeText(SecondActivity.this, content.getText().toString(), Toast.LENGTH_LONG).show());
 
 		ImageButton ibt1 = findViewById(R.id.add_picture);
 		ibt1.setOnClickListener(v -> {
@@ -149,17 +163,13 @@ public class SecondActivity extends AppCompatActivity {
 			startActivityForResult(intent, DRAW);
 		});
 
-		checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (isChecked) {
-					secret = 1;
-				}else if (!isChecked) {
-					secret = 0;
-				}
+		checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+			if (isChecked) {
+				secret = 1;
+			}else if (!isChecked) {
+				secret = 0;
 			}
 		});
-
 
 		t.save.setOnClickListener(v -> {
 			SQLiteDatabase db = helper.getWritableDatabase();
@@ -220,7 +230,7 @@ public class SecondActivity extends AppCompatActivity {
 			Uri uri = data.getData();
 			ContentResolver cr = SecondActivity.this.getContentResolver();
 			Bitmap bm = null;
-			Bundle bd = null;
+			Bundle bd;
 			String location = null;
 			switch (requestCode) {
 				case ADD_PICTURE:

@@ -10,7 +10,7 @@ import androidx.annotation.Nullable;
 
 public class MySQLiteOpenHelper extends SQLiteOpenHelper {
 	protected Context mContext;
-	private static final int VERSION = 4;
+	private static final int VERSION = 5;
 	public static final String CREATE = "create table Note ("
 			+ "ID integer primary key autoincrement, "
 			+ "TITLE text, "
@@ -34,7 +34,11 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
 		ContentValues values3 = new ContentValues();
 		values3.put("COLOR", 2131099845);
 		db.insert("Color", null, values3);
-		Toast.makeText(mContext, "database create success", Toast.LENGTH_SHORT).show();
+		db.execSQL("CREATE TABLE Background (ID integer primary key autoincrement, PATH TEXT)");
+		ContentValues values4 = new ContentValues();
+		values4.put("PATH", "");
+		db.insert("Background", null, values4);
+		Toast.makeText(mContext, "数据库创建成功", Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -55,6 +59,11 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
 				ContentValues values3 = new ContentValues();
 				values3.put("COLOR", 2131099845);
 				db.insert("Color", null, values3);
+			case 4:
+				db.execSQL("CREATE TABLE Background (ID integer primary key autoincrement, PATH TEXT)");
+				ContentValues values4 = new ContentValues();
+				values4.put("PATH", "");
+				db.insert("Background", null, values4);
 			default:
 		}
 	}

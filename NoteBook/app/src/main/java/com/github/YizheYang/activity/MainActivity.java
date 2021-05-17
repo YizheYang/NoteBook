@@ -4,30 +4,21 @@ import android.Manifest;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListPopupWindow;
@@ -44,10 +35,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.YizheYang.MySQLiteOpenHelper;
-import com.github.YizheYang.recyclerview.Note;
-import com.github.YizheYang.recyclerview.NoteAdapter;
 import com.github.YizheYang.R;
 import com.github.YizheYang.layout.SearchLayout;
+import com.github.YizheYang.recyclerview.Note;
+import com.github.YizheYang.recyclerview.NoteAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -63,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
 	private static final int REQUEST_SECOND = 1;
 	private static final int REQUEST_SETTING = 2;
 	private static final int REQUEST_SECRET = 3;
+	private static final int REQUEST_PERMISSION = 4;
 	private static final String TAG = "MainActivity";
 
 	private RecyclerView recyclerView;
@@ -89,7 +81,14 @@ public class MainActivity extends AppCompatActivity {
 	private String password;
 
 	private int color = R.color.white;
+	private String path;
 
+	private static final String[] permissionList = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE
+			, Manifest.permission.WRITE_EXTERNAL_STORAGE
+			, Manifest.permission.CAMERA
+			, Manifest.permission.RECORD_AUDIO};
+	private AlertDialog alertDialog;
+	private AlertDialog mDialog;
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -107,9 +106,7 @@ public class MainActivity extends AppCompatActivity {
 				Intent intent = new Intent(MainActivity.this, SettingActivity.class);
 				intent.putExtra("color", color);
 				intent.putExtra("password", password);
-//				Bundle bundle = new Bundle();
-//				bundle.putString("password", password);
-//				intent.putExtras(bundle);
+				intent.putExtra("path", path);
 				startActivityForResult(intent, REQUEST_SETTING);
 				break;
 			default:
@@ -125,6 +122,14 @@ public class MainActivity extends AppCompatActivity {
 				isExit = false;
 			}else if (msg.what == 1) {
 				secret = 0;
+			}else if (msg.what == 2) {
+				Bitmap bitmap = BitmapFactory.decodeFile(msg.obj.toString());
+				if (bitmap == null) {
+					Toast.makeText(MainActivity.this, "图片不存在", Toast.LENGTH_SHORT).show();
+					path = null;
+				}else {
+					background.setImageBitmap(bitmap);
+				}
 			}
 		}
 	};
@@ -132,29 +137,23 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-//		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-//		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-//				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.activity_main);
-
-
-		requestPower();
+		requestPermission();
 		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null);
 		db = helper.getWritableDatabase();
 //		linearLayout = findViewById(R.id.main_linearLayout);
-//		background = findViewById(R.id.background);
+		background = findViewById(R.id.main_background);
 		loadNoteFromSQLite();
 		loadPasswordFromSQLite();
 		loadColorFromSQLite();
+		loadBackgroundFromSQLite();
 
 
 		recyclerView = findViewById(R.id.recyclerView);
 		recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
 		adapter = new NoteAdapter(this, noteList);
 		recyclerView.setAdapter(adapter);
-		adapter.setOnItemClickListener((view, position) -> {
-			startSecondActivityWithEditMode(noteList.get(position));
-		});
+		adapter.setOnItemClickListener((view, position) -> startSecondActivityWithEditMode(noteList.get(position)));
 		adapter.setOnLongClickListener((view, position) -> {
 			AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this).setTitle("警告").setMessage("是否删除此笔记？")
 					.setPositiveButton("yes", (dialog, which) -> {
@@ -223,9 +222,7 @@ public class MainActivity extends AppCompatActivity {
 			if (!search.editText.getText().toString().equals("")) {
 				searchAdapter = new NoteAdapter(this, searchList);
 				recyclerView.setAdapter(searchAdapter);
-				searchAdapter.setOnItemClickListener((view, position) -> {
-					startSecondActivityWithEditMode(searchList.get(position));
-				});
+				searchAdapter.setOnItemClickListener((view, position) -> startSecondActivityWithEditMode(searchList.get(position)));
 			}else if (search.editText.getText().toString().equals("")) {
 				recyclerView.setAdapter(adapter);
 			}
@@ -252,20 +249,9 @@ public class MainActivity extends AppCompatActivity {
 			}
 			Intent intent = new Intent(MainActivity.this, SecondActivity.class);
 			intent.putExtra("color", color);
+			intent.putExtra("path", path);
 			startActivityForResult(intent, REQUEST_SECOND);
 		});
-	}
-
-	@Override
-	protected void onStop() {
-		super.onStop();
-		db.close();
-	}
-
-	@Override
-	protected void onRestart() {
-		super.onRestart();
-		db = helper.getWritableDatabase();
 	}
 
 	@Override
@@ -280,6 +266,24 @@ public class MainActivity extends AppCompatActivity {
 		db = helper.getWritableDatabase();
 	}
 
+	@Override
+	protected void onStop() {
+		super.onStop();
+		db.close();
+	}
+
+	@Override
+	protected void onRestart() {
+		super.onRestart();
+		db = helper.getWritableDatabase();
+	}
+
+	/**
+	 * 实现第二次返回才退出软件，防止误触
+	 * @param keyCode
+	 * @param event
+	 * @return
+	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
@@ -309,25 +313,24 @@ public class MainActivity extends AppCompatActivity {
 			if (resultCode == RESULT_OK) {
 				loadPasswordFromSQLite();
 				int oldColor = color;
-				color = data.getIntExtra("color", 0);
+				color = data.getIntExtra("color", R.color.white);
 				if (color != 0) {
 					getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
 					ContentValues values = new ContentValues();
 					values.put("COLOR", color);
 					db.update("Color", values, "COLOR=?", new String[]{String.valueOf(oldColor)});
 				}
-
-////				int color = data.getIntExtra("color", 0);
-//				String path = data.getStringExtra("path");
-//				Bitmap bitmap = BitmapFactory.decodeFile(path);
-//
-////				Drawable drawable = new BitmapDrawable(getResources(), bitmap);
-////
-//				Message message = new Message();
-//				message.what = 1;
-//				message.obj = bitmap;
-//				handler.sendMessage(message);
-////				linearLayout.setBackground(drawable);
+				String oldPath = path;
+				path = data.getStringExtra("path");
+				if (path != null && !path.equals("")) {
+					Message message = new Message();
+					message.what = 2;
+					message.obj = path;
+					handler.sendMessage(message);
+					ContentValues values = new ContentValues();
+					values.put("PATH", path);
+					db.update("Background", values, "PATH=?", new String[]{oldPath});
+				}
 			}
 		}else if (requestCode == REQUEST_SECRET) {
 			if (resultCode == RESULT_OK) {
@@ -336,17 +339,17 @@ public class MainActivity extends AppCompatActivity {
 					Toast.makeText(MainActivity.this, "进入隐私空间", Toast.LENGTH_SHORT).show();
 					secretAdapter = new NoteAdapter(this, secretList);
 					recyclerView.setAdapter(secretAdapter);
-					secretAdapter.setOnItemClickListener(new NoteAdapter.OnItemClickListener() {
-						@Override
-						public void onItemClick(View view, int position) {
-							startSecondActivityWithEditMode(secretList.get(position));
-						}
-					});
+					secretAdapter.setOnItemClickListener((view, position) -> startSecondActivityWithEditMode(secretList.get(position)));
 				}
 			}
+		}else if (requestCode == REQUEST_PERMISSION) {
+			requestPermission();
 		}
 	}
 
+	/**
+	 * 从数据库中加载笔记，包括普通笔记和私密笔记
+	 */
 	private void loadNoteFromSQLite() {
 		db = helper.getWritableDatabase();
 		Cursor cursor1 = db.query("Note", null, "SECRET=?", new String[]{String.valueOf(0)}, null, null, null);
@@ -375,6 +378,9 @@ public class MainActivity extends AppCompatActivity {
 		cursor2.close();
 	}
 
+	/**
+	 * 从数据库中加载隐私空间密码
+	 */
 	private void loadPasswordFromSQLite() {
 		db = helper.getWritableDatabase();
 		Cursor cursor = db.query("Password", null, null, null, null, null, null);
@@ -386,6 +392,9 @@ public class MainActivity extends AppCompatActivity {
 		cursor.close();
 	}
 
+	/**
+	 * 从数据库中加载背景颜色
+	 */
 	private void loadColorFromSQLite() {
 		db = helper.getWritableDatabase();
 		Cursor cursor = db.query("Color", null, null, null, null, null, null);
@@ -399,23 +408,103 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	/**
+	 * 从数据库中加载背景图片的地址
+	 */
+	private void loadBackgroundFromSQLite() {
+		db = helper.getWritableDatabase();
+		Cursor cursor = db.query("Background", null, null, null, null, null, null);
+		if (cursor.moveToFirst()) {
+			do {
+				path = cursor.getString(cursor.getColumnIndex("PATH"));
+			}while (cursor.moveToNext());
+		}
+		if (!path.equals("")) {
+			Message message = new Message();
+			message.what = 2;
+			message.obj = path;
+			handler.sendMessage(message);
+		}
+		cursor.close();
+	}
+
+	/**
 	 * 请求所需的权限
 	 */
-	public void requestPower() {
-		if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-			//refuse == true
-			if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-				Toast.makeText(this, "请同意授权以保证程序正常运行", Toast.LENGTH_SHORT).show();
-			} else {
-				ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE
-								, Manifest.permission.WRITE_EXTERNAL_STORAGE
-								, Manifest.permission.CAMERA
-								, Manifest.permission.RECORD_AUDIO}
-						, 1);
+	public void requestPermission() {
+		if (!isAllPermit(permissionList)) {
+			ActivityCompat.requestPermissions(this, permissionList, 1);
+		}else {
+			Toast.makeText(this, "您已经申请啦", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	/**
+	 * 判断是否全部权限已经允许
+	 * @param permissions 需要的权限
+	 * @return true为全部已授权 false为至少有一个没授权
+	 */
+	public boolean isAllPermit(String[] permissions) {
+		for (String permission : permissions) {
+			if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 对请求的返回结果进行处理，此处是对未授权的权限进行二次请求
+	 * @param requestCode 请求时的请求码
+	 * @param permissions 请求的权限
+	 * @param grantResults	请求的结果
+	 */
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		if (requestCode == 1) {
+			for (int i = 0;i < permissions.length;i++) {
+				if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+					Toast.makeText(this, "权限" + permissions[i] + "申请成功", Toast.LENGTH_SHORT).show();
+				}else {
+					if (!ActivityCompat.shouldShowRequestPermissionRationale(this, permissions[i])) {
+						AlertDialog.Builder builder = new AlertDialog.Builder(this);
+						builder.setTitle("permission")
+								.setMessage("点击允许才可以使用我们的app哦")
+								.setPositiveButton("去允许", (dialog, id) -> {
+									if (mDialog != null && mDialog.isShowing()) {
+										mDialog.dismiss();
+									}
+									Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+									Uri uri = Uri.fromParts("package", getPackageName(), null);//注意就是"package",不用改成自己的包名
+									intent.setData(uri);
+									startActivityForResult(intent, REQUEST_PERMISSION);
+								});
+						mDialog = builder.create();
+						mDialog.setCanceledOnTouchOutside(false);
+						mDialog.show();
+					}else {
+						AlertDialog.Builder builder = new AlertDialog.Builder(this);
+						builder.setTitle("permission")
+								.setMessage("点击允许才可以使用我们的app哦")
+								.setPositiveButton("去允许",  (dialog, id) -> {
+									if (alertDialog != null && alertDialog.isShowing()) {
+										alertDialog.dismiss();
+									}
+									ActivityCompat.requestPermissions(this, permissionList, 1);
+								});
+						alertDialog = builder.create();
+						alertDialog.setCanceledOnTouchOutside(false);
+						alertDialog.show();
+					}
+					break;
+				}
 			}
 		}
 	}
 
+	/**
+	 * 显示搜索框弹出的显示窗口
+	 */
 	private void showListPopupWindow() {
 		listPopupWindow = new ListPopupWindow(this);
 		SimpleAdapter adapter = new SimpleAdapter(this, getAdapterList(searchList), R.layout.search_item
@@ -430,6 +519,11 @@ public class MainActivity extends AppCompatActivity {
 		listPopupWindow.show();
 	}
 
+	/**
+	 * 返回合适的list，能把数据塞进搜索框弹出的窗口的adpter里
+	 * @param l 放入的数据
+	 * @return 经过格式化的数据
+	 */
 	public List<Map<String,Object>> getAdapterList(List<Note> l) {
 		List<Map<String,Object>> list = new ArrayList<>();
 		Map<String,Object> map;
@@ -443,6 +537,11 @@ public class MainActivity extends AppCompatActivity {
 		return list;
 	}
 
+	/**
+	 * 将图片或者录音地址改为[图片]或者[录音]，以便显示在主页
+	 * @param c 存在地址的字符串
+	 * @return 格式化完的字符串
+	 */
 	private String replaceContent(String c) {
 		String[] strings = c.split("\n");
 		for (int i = 0;i < strings.length;i++) {
@@ -465,6 +564,12 @@ public class MainActivity extends AppCompatActivity {
 		return result;
 	}
 
+	/**
+	 * 判断两个字符串是否有重复的部分，用来实现关键字搜索
+	 * @param l	长的字符串，被比较的对象
+	 * @param s	短的字符串，比较的对象
+	 * @return	true l中有s	false l中没有s
+	 */
 	private boolean isRepeat(String l, String s) {
 		for (int i = 0;i <= l.length() - s.length();i++) {
 			String temp = l.substring(i, i + s.length());
@@ -475,10 +580,15 @@ public class MainActivity extends AppCompatActivity {
 		return false;
 	}
 
+	/**
+	 * 用编辑模式启动编辑器，即编辑已存在的数据
+	 * @param note	被点击的数据
+	 */
 	private void startSecondActivityWithEditMode(Note note) {
 		Intent intent = new Intent(MainActivity.this, SecondActivity.class);
 		intent.putExtra("mode", EDIT_MODE);
 		intent.putExtra("color", color);
+		intent.putExtra("path", path);
 		Bundle bundle = new Bundle();
 		bundle.putString("id", note.id);
 		bundle.putString("title", note.title);
