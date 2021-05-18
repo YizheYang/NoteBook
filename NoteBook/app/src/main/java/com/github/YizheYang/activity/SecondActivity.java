@@ -124,7 +124,8 @@ public class SecondActivity extends AppCompatActivity {
 		if (mode == EDIT_MODE) {
 			t.title.setText("编辑");
 			Bundle bundle = it.getBundleExtra("data");
-			Note note = new Note(bundle.getString("id"), bundle.getString("title"), bundle.getString("content"), bundle.getString("date"));
+			Note note = new Note(bundle.getString("id"), bundle.getString("title")
+					, bundle.getString("content"), bundle.getString("date"), bundle.getInt("secret"));
 			Message message = new Message();
 			message.what = 1;
 			message.obj = note;

@@ -4,7 +4,7 @@
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/灰色</item>
         <item name="colorPrimaryVariant">@color/灰色</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnPrimary">@color/black</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
@@ -14,6 +14,8 @@
         <!-- Customize your theme here. -->
         <item name="android:fitsSystemWindows">true</item><!--组件靠屏幕边缘-->
         <item name="android:windowFullscreen">true</item><!--全屏-->
+        <item name="android:navigationBarColor">@color/transparent</item>
+        <item name="colorAccent">@color/淡灰色</item>
     </style>
 
     <style name="MyDialog" parent="android:Theme.Dialog">

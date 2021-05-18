@@ -2,7 +2,10 @@ package com.github.YizheYang.activity;
 
 import android.Manifest;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -39,6 +43,7 @@ import com.github.YizheYang.R;
 import com.github.YizheYang.layout.SearchLayout;
 import com.github.YizheYang.recyclerview.Note;
 import com.github.YizheYang.recyclerview.NoteAdapter;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -99,9 +104,6 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.mainItem:
-				Toast.makeText(MainActivity.this, "1", Toast.LENGTH_SHORT).show();
-				break;
 			case R.id.setting:
 				Intent intent = new Intent(MainActivity.this, SettingActivity.class);
 				intent.putExtra("color", color);
@@ -139,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		requestPermission();
+		isFirstLaunch();
 		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null);
 		db = helper.getWritableDatabase();
 //		linearLayout = findViewById(R.id.main_linearLayout);
@@ -235,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
 				secret = 0;
 				Intent intent = new Intent(MainActivity.this, SecretActivity.class);
 				intent.putExtra("password", password);
-				startActivityForResult(intent, 3);
+				startActivityForResult(intent, REQUEST_SECRET);
 			}
 		});
 
@@ -306,8 +309,10 @@ public class MainActivity extends AppCompatActivity {
 		if (requestCode == REQUEST_SECOND) {
 			if (resultCode == RESULT_OK) {
 				noteList.clear();
+				secretList.clear();
 				loadNoteFromSQLite();
 				adapter.notifyDataSetChanged();
+				secretAdapter.notifyDataSetChanged();
 			}
 		} else if (requestCode == REQUEST_SETTING) {
 			if (resultCode == RESULT_OK) {
@@ -340,6 +345,7 @@ public class MainActivity extends AppCompatActivity {
 					secretAdapter = new NoteAdapter(this, secretList);
 					recyclerView.setAdapter(secretAdapter);
 					secretAdapter.setOnItemClickListener((view, position) -> startSecondActivityWithEditMode(secretList.get(position)));
+					isFirstLaunch();
 				}
 			}
 		}else if (requestCode == REQUEST_PERMISSION) {
@@ -433,8 +439,6 @@ public class MainActivity extends AppCompatActivity {
 	public void requestPermission() {
 		if (!isAllPermit(permissionList)) {
 			ActivityCompat.requestPermissions(this, permissionList, 1);
-		}else {
-			Toast.makeText(this, "您已经申请啦", Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -593,8 +597,36 @@ public class MainActivity extends AppCompatActivity {
 		bundle.putString("id", note.id);
 		bundle.putString("title", note.title);
 		bundle.putString("content", note.content);
+		bundle.putInt("secret", note.secret);
 		intent.putExtra("data", bundle);
 		startActivityForResult(intent, 1);
+	}
+
+	private void isFirstLaunch() {
+		SharedPreferences sharedPreferences = getSharedPreferences("isFirst", MODE_PRIVATE);
+		boolean isFirst = sharedPreferences.getBoolean("isFirst", true);
+		boolean isFirstSecret = sharedPreferences.getBoolean("isFirstSecret", true);
+		SharedPreferences.Editor editor = sharedPreferences.edit();
+		if (isFirst) {
+			editor.putBoolean("isFirst", false);
+			editor.apply();
+			AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+			builder.setTitle("欢迎使用NoteBook").setMessage("快速三击左上方放大镜进入私密空间\n初始密码为000\n祝您使用愉快");
+			builder.setPositiveButton("开始记事之旅", (dialog, which) -> {
+				dialog.dismiss();
+			});
+			builder.create().show();
+		}
+		if (isFirstSecret && isSecret) {
+			editor.putBoolean("isFirstSecret", false);
+			editor.apply();
+			AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+			builder.setTitle("如何退出私密空间").setMessage("在私密空间里\n点击右下角按钮退出私密空间");
+			builder.setPositiveButton("我记住了", (dialog, which) -> {
+				dialog.dismiss();
+			});
+			builder.create().show();
+		}
 	}
 
 }
