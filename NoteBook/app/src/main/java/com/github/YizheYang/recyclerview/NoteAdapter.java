@@ -112,7 +112,7 @@ public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 		}
 		String result = "";
 		for (String string : strings) {
-			result += string;
+			result += "\n" + string;
 		}
 		return result;
 	}

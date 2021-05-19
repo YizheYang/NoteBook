@@ -10,11 +10,11 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
+import com.github.YizheYang.tools.MyAppCompatActivity;
 import com.github.YizheYang.R;
 
-public class ViewPictureActivity extends AppCompatActivity {
+public class ViewPictureActivity extends MyAppCompatActivity {
 
 	private ImageView imageView;
 

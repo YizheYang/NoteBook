@@ -43,6 +43,7 @@
             android:name=".activity.SecretActivity"
             android:theme="@style/Theme.AppCompat.Dialog"
             android:launchMode="singleTask"/>
+        <activity android:name=".activity.TestActivity"/>
 
     </application>
 

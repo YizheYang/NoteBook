@@ -28,7 +28,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -36,20 +35,18 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
-import com.github.YizheYang.MySQLiteOpenHelper;
-import com.github.YizheYang.MyTimer;
+import com.github.YizheYang.tools.MyAppCompatActivity;
+import com.github.YizheYang.tools.MyLog;
+import com.github.YizheYang.tools.MySQLiteOpenHelper;
+import com.github.YizheYang.tools.MyTimer;
 import com.github.YizheYang.recyclerview.Note;
 import com.github.YizheYang.R;
 import com.github.YizheYang.layout.Title;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
-public class SecondActivity extends AppCompatActivity {
+public class SecondActivity extends MyAppCompatActivity {
 
 	private static final String TAG = "SecondActivity";
 	private int mode;
@@ -104,7 +101,7 @@ public class SecondActivity extends AppCompatActivity {
 
 		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null);
 		helper.getWritableDatabase();
-		myTimer = new MyTimer();
+//		myTimer = new MyTimer();
 		title = findViewById(R.id.first_EditText);
 		content = findViewById(R.id.second_EditText);
 		Button testButton = findViewById(R.id.test2);
@@ -184,7 +181,7 @@ public class SecondActivity extends AppCompatActivity {
 				ContentValues values = new ContentValues();
 				values.put("TITLE", title.getText().toString());
 				values.put("CONTENT", content.getText().toString());
-				values.put("DATE", myTimer.getDate());
+				values.put("DATE", MyTimer.getDate());
 				values.put("SECRET", secret);
 				db.insert("Note", null, values);
 			}
@@ -227,7 +224,7 @@ public class SecondActivity extends AppCompatActivity {
 	protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (resultCode == RESULT_OK) {
-			Log.d(TAG, "data: " + data);
+			MyLog.d(this, "data: " + data);
 			Uri uri = data.getData();
 			ContentResolver cr = SecondActivity.this.getContentResolver();
 			Bitmap bm = null;
@@ -237,9 +234,9 @@ public class SecondActivity extends AppCompatActivity {
 				case ADD_PICTURE:
 					try {
 						bm = BitmapFactory.decodeStream(cr.openInputStream(uri));
-						Log.d(TAG, "uri: " + uri.getPath());
+						MyLog.d(this, "uri: " + uri.getPath());
 						location = getPath(SecondActivity.this, uri);
-						Log.d(TAG, "location: " + location);
+						MyLog.d(this, "location: " + location);
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					}
@@ -252,11 +249,11 @@ public class SecondActivity extends AppCompatActivity {
 							bd = data.getExtras();
 							bm = bd.getParcelable("data");
 						}
-						MyTimer myTimer = new MyTimer();
-						String name = "temp_" + myTimer.getTime();
+//						MyTimer myTimer = new MyTimer();
+						String name = "temp_" + MyTimer.getTime();
 						location = Environment.getExternalStorageDirectory() + "/Pictures/" + name + ".jpg";
 						String result = MediaStore.Images.Media.insertImage(getContentResolver(), bm, name, null);
-						Log.d(TAG, "onActivityResult: " + result);
+						MyLog.d(this, "Result: " + result);
 						Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(result));
 						sendBroadcast(intent);
 					} catch (Exception e) {
@@ -368,7 +365,7 @@ public class SecondActivity extends AppCompatActivity {
 					continue;
 				}
 			}
-			content.append(string);
+			content.append(string + "\n");
 		}
 	}
 

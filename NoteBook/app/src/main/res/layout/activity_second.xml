@@ -34,9 +34,9 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:hint="内容"
-            android:maxLines="31"
-            android:minLines="31" />
+            android:gravity="start"
+            android:layout_margin="5dp"
+            android:hint="内容"/>
 
         <LinearLayout
             android:layout_width="match_parent"

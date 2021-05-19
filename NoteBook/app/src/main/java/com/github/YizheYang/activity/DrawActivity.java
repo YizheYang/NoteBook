@@ -11,14 +11,14 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
-import com.github.YizheYang.MyTimer;
+import com.github.YizheYang.tools.MyAppCompatActivity;
+import com.github.YizheYang.tools.MyTimer;
 import com.github.YizheYang.R;
 import com.github.YizheYang.layout.DrawView;
 import com.github.YizheYang.layout.Title;
 
-public class DrawActivity extends AppCompatActivity {
+public class DrawActivity extends MyAppCompatActivity {
 
 	private DrawView drawView;
 
@@ -34,8 +34,8 @@ public class DrawActivity extends AppCompatActivity {
 		Title title = findViewById(R.id.draw_title);
 		title.title.setText("画板");
 		title.save.setOnClickListener(v -> {
-			MyTimer mt = new MyTimer();
-			String name = "tempDraw_" + mt.getTime();
+//			MyTimer mt = new MyTimer();
+			String name = "tempDraw_" + MyTimer.getTime();
 			String result = MediaStore.Images.Media.insertImage(getContentResolver(), drawView.getBitmap(), name, null);
 			Intent it = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(result));
 			sendBroadcast(it);

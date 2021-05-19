@@ -24,14 +24,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
-import com.github.YizheYang.MySQLiteOpenHelper;
+import com.github.YizheYang.tools.MyAppCompatActivity;
+import com.github.YizheYang.tools.MySQLiteOpenHelper;
 import com.github.YizheYang.R;
 import com.google.android.material.button.MaterialButton;
 
-public class SettingActivity extends AppCompatActivity {
-	private static final String TAG = "SettingActivity";
+public class SettingActivity extends MyAppCompatActivity {
 	private int color = R.color.white;
 
 	private String path;

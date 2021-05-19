@@ -2,8 +2,6 @@ package com.github.YizheYang.activity;
 
 import android.Manifest;
 import android.content.ContentValues;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -16,7 +14,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -24,7 +21,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListPopupWindow;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
@@ -32,18 +28,17 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.github.YizheYang.MySQLiteOpenHelper;
+import com.github.YizheYang.tools.MyAppCompatActivity;
+import com.github.YizheYang.tools.MySQLiteOpenHelper;
 import com.github.YizheYang.R;
 import com.github.YizheYang.layout.SearchLayout;
 import com.github.YizheYang.recyclerview.Note;
 import com.github.YizheYang.recyclerview.NoteAdapter;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -51,7 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends MyAppCompatActivity {
 
 	private static final int spanCount = 2;
 	private static final int NEW_MODE = 21;
@@ -60,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
 	private static final int REQUEST_SETTING = 2;
 	private static final int REQUEST_SECRET = 3;
 	private static final int REQUEST_PERMISSION = 4;
-	private static final String TAG = "MainActivity";
 
 	private RecyclerView recyclerView;
 	private NoteAdapter adapter;
@@ -76,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
 
 	private boolean isExit = false;
 
-	private LinearLayout linearLayout;
 	private ImageView background;
 
 	private int secret = 0;
@@ -111,7 +104,9 @@ public class MainActivity extends AppCompatActivity {
 				intent.putExtra("path", path);
 				startActivityForResult(intent, REQUEST_SETTING);
 				break;
-			default:
+			case R.id.test_item:
+				Intent intent1 = new Intent(MainActivity.this, TestActivity.class);
+				startActivity(intent1);
 		}
 		return true;
 	}
@@ -144,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
 		isFirstLaunch();
 		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null);
 		db = helper.getWritableDatabase();
-//		linearLayout = findViewById(R.id.main_linearLayout);
+
 		background = findViewById(R.id.main_background);
 		loadNoteFromSQLite();
 		loadPasswordFromSQLite();
@@ -155,6 +150,8 @@ public class MainActivity extends AppCompatActivity {
 		recyclerView = findViewById(R.id.recyclerView);
 		recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
 		adapter = new NoteAdapter(this, noteList);
+		secretAdapter = new NoteAdapter(this, secretList);
+		searchAdapter = new NoteAdapter(this, searchList);
 		recyclerView.setAdapter(adapter);
 		adapter.setOnItemClickListener((view, position) -> startSecondActivityWithEditMode(noteList.get(position)));
 		adapter.setOnLongClickListener((view, position) -> {
@@ -205,7 +202,6 @@ public class MainActivity extends AppCompatActivity {
 						}
 					}
 				}
-
 			}
 
 			@Override
@@ -223,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
 
 		search.button.setOnClickListener(v -> {
 			if (!search.editText.getText().toString().equals("")) {
-				searchAdapter = new NoteAdapter(this, searchList);
 				recyclerView.setAdapter(searchAdapter);
 				searchAdapter.setOnItemClickListener((view, position) -> startSecondActivityWithEditMode(searchList.get(position)));
 			}else if (search.editText.getText().toString().equals("")) {
@@ -342,7 +337,6 @@ public class MainActivity extends AppCompatActivity {
 				isSecret = data.getBooleanExtra("isCorrect", false);
 				if (isSecret) {
 					Toast.makeText(MainActivity.this, "进入隐私空间", Toast.LENGTH_SHORT).show();
-					secretAdapter = new NoteAdapter(this, secretList);
 					recyclerView.setAdapter(secretAdapter);
 					secretAdapter.setOnItemClickListener((view, position) -> startSecondActivityWithEditMode(secretList.get(position)));
 					isFirstLaunch();

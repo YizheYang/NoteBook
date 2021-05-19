@@ -1,20 +1,13 @@
 package com.github.YizheYang.activity;
 
-import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Application;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.media.VolumeShaper;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -29,19 +22,18 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.github.YizheYang.MyTimer;
+import com.github.YizheYang.tools.MyAppCompatActivity;
+import com.github.YizheYang.tools.MyLog;
+import com.github.YizheYang.tools.MyTimer;
 import com.github.YizheYang.R;
 import com.github.YizheYang.layout.Title;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Timer;
 
-public class RecordActivity extends AppCompatActivity {
+public class RecordActivity extends MyAppCompatActivity {
 
 	private static final int RECORD_MODE = 31;
 	private static final int PLAY_MODE = 32;
@@ -89,6 +81,7 @@ public class RecordActivity extends AppCompatActivity {
 		}
 
 		path = ContextCompat.getExternalFilesDirs(getApplicationContext(), null)[0].getAbsolutePath();
+		Log.d("TAG", "onCreate: " + path);
 		File file = new File(path);
 		if (!file.exists()) {
 			file.mkdir();
@@ -99,8 +92,9 @@ public class RecordActivity extends AppCompatActivity {
 					File f = new File(path, name);
 					f.delete();
 				}
-				MyTimer mt = new MyTimer();
-				name = "record_" + mt.getTime() + ".amr";
+//				MyTimer mt = new MyTimer();
+				name = "record_" + MyTimer.getTime() + ".amr";
+				MyLog.d(this, "name:" + name);
 				File file1 = new File(path, name);
 				if (!file1.exists()) {
 					try {
@@ -166,6 +160,10 @@ public class RecordActivity extends AppCompatActivity {
 						.setTitle("警告:")
 						.setMessage("是否退出本页？");
 				builder.setPositiveButton("是", (dialog, which) -> {
+					if (name != null) {
+						File f = new File(path, name);
+						f.delete();
+					}
 					this.finish();
 					dialog.dismiss();
 				});

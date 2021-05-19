@@ -8,11 +8,11 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 
+import com.github.YizheYang.tools.MyAppCompatActivity;
 import com.github.YizheYang.R;
 
-public class SecretActivity extends AppCompatActivity {
+public class SecretActivity extends MyAppCompatActivity {
 
 	private EditText editText;
 	private String password;
