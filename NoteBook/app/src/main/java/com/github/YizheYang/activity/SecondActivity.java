@@ -158,7 +158,7 @@ public class SecondActivity extends MyAppCompatActivity {
 		checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
 			if (isChecked) {
 				secret = 1;
-			}else if (!isChecked) {
+			}else {
 				secret = 0;
 			}
 		});
@@ -518,7 +518,8 @@ public class SecondActivity extends MyAppCompatActivity {
 					bm = BitmapFactory.decodeResource(getResources(), R.drawable.baseline_mic_black_48);
 					scaleBitmap(bm, location);
 					continue;
-				} else if (type.equals(".jpg")) {
+				} else if (type.equals(".jpg") || type.equals("jpeg") || type.equals(".png") || type.equals(".bmp")
+						|| type.equals(".ico") || type.equals("wbmp") || type.equals("webp") || type.equals(".gif")) {
 					location = string;
 					bm = BitmapFactory.decodeFile(location);
 					scaleBitmap(bm, location);

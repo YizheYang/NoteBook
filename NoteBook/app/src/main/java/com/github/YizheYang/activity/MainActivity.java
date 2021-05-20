@@ -561,7 +561,8 @@ public class MainActivity extends MyAppCompatActivity {
 			if (type != null) {
 				if(type.equals(".amr")){
 					strings[i] = "[录音]";
-				} else if (type.equals(".jpg")){
+				} else if (type.equals(".jpg") || type.equals("jpeg") || type.equals(".png") || type.equals(".bmp")
+						|| type.equals(".ico") || type.equals("wbmp") || type.equals("webp") || type.equals(".gif")){
 					strings[i] = "[图片]";
 				}
 			}
