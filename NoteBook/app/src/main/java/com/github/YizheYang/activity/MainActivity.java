@@ -111,25 +111,77 @@ public class MainActivity extends MyAppCompatActivity {
 		return true;
 	}
 
-	private final Handler handler = new Handler(Looper.getMainLooper()) {
-		@Override
-		public void handleMessage(@NonNull Message msg) {
-			super.handleMessage(msg);
-			if (msg.what == 0) {
-				isExit = false;
-			}else if (msg.what == 1) {
-				secret = 0;
-			}else if (msg.what == 2) {
-				Bitmap bitmap = BitmapFactory.decodeFile(msg.obj.toString());
-				if (bitmap == null) {
-					Toast.makeText(MainActivity.this, "图片不存在", Toast.LENGTH_SHORT).show();
-					path = null;
-				}else {
-					background.setImageBitmap(bitmap);
+	/**
+	 * 实现第二次返回才退出软件，防止误触
+	 * @param keyCode 按下的按键
+	 * @param event 点击事件
+	 * @return 是否已经处理事件
+	 */
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+			if (!isExit) {
+				isExit = true;
+				Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
+				handler.sendEmptyMessageDelayed(0, 1000);
+			} else {
+				finish();
+				System.exit(0);
+			}
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	/**
+	 * 对请求的返回结果进行处理，此处是对未授权的权限进行二次请求
+	 * @param requestCode 请求时的请求码
+	 * @param permissions 请求的权限
+	 * @param grantResults	请求的结果
+	 */
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		if (requestCode == 1) {
+			for (int i = 0;i < permissions.length;i++) {
+				if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+					Toast.makeText(this, "权限" + permissions[i] + "申请成功", Toast.LENGTH_SHORT).show();
+				}else {//被拒绝就显示解释dialog，然后再次请求或者去往权限设置
+					if (!ActivityCompat.shouldShowRequestPermissionRationale(this, permissions[i])) {
+						AlertDialog.Builder builder = new AlertDialog.Builder(this);
+						builder.setTitle("permission")
+								.setMessage("点击允许才可以使用我们的app哦")
+								.setPositiveButton("去允许", (dialog, id) -> {
+									if (mDialog != null && mDialog.isShowing()) {
+										mDialog.dismiss();
+									}
+									Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+									Uri uri = Uri.fromParts("package", getPackageName(), null);
+									intent.setData(uri);
+									startActivityForResult(intent, REQUEST_PERMISSION);
+								});
+						mDialog = builder.create();
+						mDialog.setCanceledOnTouchOutside(false);
+						mDialog.show();
+					}else {
+						AlertDialog.Builder builder = new AlertDialog.Builder(this);
+						builder.setTitle("permission")
+								.setMessage("点击允许才可以使用我们的app哦")
+								.setPositiveButton("去允许",  (dialog, id) -> {
+									if (alertDialog != null && alertDialog.isShowing()) {
+										alertDialog.dismiss();
+									}
+									ActivityCompat.requestPermissions(this, permissionList, 1);
+								});
+						alertDialog = builder.create();
+						alertDialog.setCanceledOnTouchOutside(false);
+						alertDialog.show();
+					}
+					break;
 				}
 			}
 		}
-	};
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -168,7 +220,7 @@ public class MainActivity extends MyAppCompatActivity {
 		});
 
 		search = findViewById(R.id.main_search);
-		search.editText.addTextChangedListener(new TextWatcher() {
+		search.editText.addTextChangedListener(new TextWatcher() {//实现关键字搜索功能
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 				if (listPopupWindow != null) {
@@ -217,7 +269,7 @@ public class MainActivity extends MyAppCompatActivity {
 			}
 		});
 
-		search.button.setOnClickListener(v -> {
+		search.button.setOnClickListener(v -> {//将搜索结果显示出来
 			if (!search.editText.getText().toString().equals("")) {
 				recyclerView.setAdapter(searchAdapter);
 				searchAdapter.setOnItemClickListener((view, position) -> startSecondActivityWithEditMode(searchList.get(position)));
@@ -226,7 +278,7 @@ public class MainActivity extends MyAppCompatActivity {
 			}
 		});
 
-		search.imageView.setOnClickListener(v -> {
+		search.imageView.setOnClickListener(v -> {//当1000ms内点击次数够多时进入隐私模式
 			secret++;
 			handler.sendEmptyMessageDelayed(1, 1000);
 			if (!isSecret && secret == SECRET_MODE) {
@@ -277,40 +329,24 @@ public class MainActivity extends MyAppCompatActivity {
 	}
 
 	/**
-	 * 实现第二次返回才退出软件，防止误触
-	 * @param keyCode
-	 * @param event
-	 * @return
+	 * 对返回的结果进行处理
+	 * @param requestCode 启动别的活动时的请求码
+	 * @param resultCode 别的活动返回的结果码
+	 * @param data 别的活动返回的数据
 	 */
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-			if (!isExit) {
-				isExit = true;
-				Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
-				handler.sendEmptyMessageDelayed(0, 1000);
-			} else {
-				finish();
-				System.exit(0);
-			}
-			return true;
-		}
-		return super.onKeyDown(keyCode, event);
-	}
-
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if (requestCode == REQUEST_SECOND) {
-			if (resultCode == RESULT_OK) {
+		if (requestCode == REQUEST_SECOND) {//这里是从第二个活动返回的结果
+			if (resultCode == RESULT_OK) {//刷新笔记列表
 				noteList.clear();
 				secretList.clear();
 				loadNoteFromSQLite();
 				adapter.notifyDataSetChanged();
 				secretAdapter.notifyDataSetChanged();
 			}
-		} else if (requestCode == REQUEST_SETTING) {
-			if (resultCode == RESULT_OK) {
+		} else if (requestCode == REQUEST_SETTING) {//这里是从设置页面返回的结果
+			if (resultCode == RESULT_OK) {//更新私密密码；更换背景颜色；更换背景图片
 				loadPasswordFromSQLite();
 				int oldColor = color;
 				color = data.getIntExtra("color", R.color.white);
@@ -322,18 +358,19 @@ public class MainActivity extends MyAppCompatActivity {
 				}
 				String oldPath = path;
 				path = data.getStringExtra("path");
-				if (path != null && !path.equals("")) {
-					Message message = new Message();
-					message.what = 2;
-					message.obj = path;
-					handler.sendMessage(message);
-					ContentValues values = new ContentValues();
-					values.put("PATH", path);
-					db.update("Background", values, "PATH=?", new String[]{oldPath});
+				if (path == null) {
+					path = "";
 				}
+				Message message = new Message();
+				message.what = 2;
+				message.obj = path;
+				handler.sendMessage(message);
+				ContentValues values = new ContentValues();
+				values.put("PATH", path);
+				db.update("Background", values, "PATH=?", new String[]{oldPath});
 			}
-		}else if (requestCode == REQUEST_SECRET) {
-			if (resultCode == RESULT_OK) {
+		}else if (requestCode == REQUEST_SECRET) {//这里是从登入页面返回的结果
+			if (resultCode == RESULT_OK) {//密码正确则显示隐私笔记
 				isSecret = data.getBooleanExtra("isCorrect", false);
 				if (isSecret) {
 					Toast.makeText(MainActivity.this, "进入隐私空间", Toast.LENGTH_SHORT).show();
@@ -342,10 +379,35 @@ public class MainActivity extends MyAppCompatActivity {
 					isFirstLaunch();
 				}
 			}
-		}else if (requestCode == REQUEST_PERMISSION) {
+		}else if (requestCode == REQUEST_PERMISSION) {//这里是从设置请求权限返回的结果
 			requestPermission();
 		}
 	}
+
+	private final Handler handler = new Handler(Looper.getMainLooper()) {
+		@Override
+		public void handleMessage(@NonNull Message msg) {
+			super.handleMessage(msg);
+			if (msg.what == 0) {
+				isExit = false;
+			}else if (msg.what == 1) {
+				secret = 0;
+			}else if (msg.what == 2) {
+				if (msg.obj.toString().equals("")) {
+					background.setImageResource(0);
+					Toast.makeText(MainActivity.this, "恢复初始背景", Toast.LENGTH_SHORT).show();
+				}else {
+					Bitmap bitmap = BitmapFactory.decodeFile(msg.obj.toString());
+					if (bitmap == null) {
+						Toast.makeText(MainActivity.this, "图片不存在", Toast.LENGTH_SHORT).show();
+						path = null;
+					}else {
+						background.setImageBitmap(bitmap);
+					}
+				}
+			}
+		}
+	};
 
 	/**
 	 * 从数据库中加载笔记，包括普通笔记和私密笔记
@@ -428,9 +490,9 @@ public class MainActivity extends MyAppCompatActivity {
 	}
 
 	/**
-	 * 请求所需的权限
+	 * 请求所需的危险权限
 	 */
-	public void requestPermission() {
+	private void requestPermission() {
 		if (!isAllPermit(permissionList)) {
 			ActivityCompat.requestPermissions(this, permissionList, 1);
 		}
@@ -441,63 +503,13 @@ public class MainActivity extends MyAppCompatActivity {
 	 * @param permissions 需要的权限
 	 * @return true为全部已授权 false为至少有一个没授权
 	 */
-	public boolean isAllPermit(String[] permissions) {
+	private boolean isAllPermit(String[] permissions) {
 		for (String permission : permissions) {
 			if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
 				return false;
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * 对请求的返回结果进行处理，此处是对未授权的权限进行二次请求
-	 * @param requestCode 请求时的请求码
-	 * @param permissions 请求的权限
-	 * @param grantResults	请求的结果
-	 */
-	@Override
-	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-		if (requestCode == 1) {
-			for (int i = 0;i < permissions.length;i++) {
-				if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-					Toast.makeText(this, "权限" + permissions[i] + "申请成功", Toast.LENGTH_SHORT).show();
-				}else {
-					if (!ActivityCompat.shouldShowRequestPermissionRationale(this, permissions[i])) {
-						AlertDialog.Builder builder = new AlertDialog.Builder(this);
-						builder.setTitle("permission")
-								.setMessage("点击允许才可以使用我们的app哦")
-								.setPositiveButton("去允许", (dialog, id) -> {
-									if (mDialog != null && mDialog.isShowing()) {
-										mDialog.dismiss();
-									}
-									Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-									Uri uri = Uri.fromParts("package", getPackageName(), null);//注意就是"package",不用改成自己的包名
-									intent.setData(uri);
-									startActivityForResult(intent, REQUEST_PERMISSION);
-								});
-						mDialog = builder.create();
-						mDialog.setCanceledOnTouchOutside(false);
-						mDialog.show();
-					}else {
-						AlertDialog.Builder builder = new AlertDialog.Builder(this);
-						builder.setTitle("permission")
-								.setMessage("点击允许才可以使用我们的app哦")
-								.setPositiveButton("去允许",  (dialog, id) -> {
-									if (alertDialog != null && alertDialog.isShowing()) {
-										alertDialog.dismiss();
-									}
-									ActivityCompat.requestPermissions(this, permissionList, 1);
-								});
-						alertDialog = builder.create();
-						alertDialog.setCanceledOnTouchOutside(false);
-						alertDialog.show();
-					}
-					break;
-				}
-			}
-		}
 	}
 
 	/**
@@ -509,7 +521,6 @@ public class MainActivity extends MyAppCompatActivity {
 				, new String[]{"title", "content", "date"}, new int[]{R.id.search_title, R.id.search_content, R.id.search_date});
 		listPopupWindow.setAdapter(adapter);
 		listPopupWindow.setAnchorView(search.editText);
-//		listPopupWindow.setModal(true);
 		listPopupWindow.setOnItemClickListener((adapterView, view, i, l) -> {
 			startSecondActivityWithEditMode(searchList.get(i));
 			listPopupWindow.dismiss();
@@ -518,11 +529,11 @@ public class MainActivity extends MyAppCompatActivity {
 	}
 
 	/**
-	 * 返回合适的list，能把数据塞进搜索框弹出的窗口的adpter里
+	 * 返回合适的list，能把数据塞进搜索框弹出的窗口的Adpter里
 	 * @param l 放入的数据
 	 * @return 经过格式化的数据
 	 */
-	public List<Map<String,Object>> getAdapterList(List<Note> l) {
+	private List<Map<String,Object>> getAdapterList(List<Note> l) {
 		List<Map<String,Object>> list = new ArrayList<>();
 		Map<String,Object> map;
 		for(int i = 0;i < l.size();i++) {
@@ -596,6 +607,10 @@ public class MainActivity extends MyAppCompatActivity {
 		startActivityForResult(intent, 1);
 	}
 
+	/**
+	 * 判断应用是不是第一次打开的，是的话则显示新手教程
+	 * 使用了SharedPreferences保存是不是第一次打开的数据
+	 */
 	private void isFirstLaunch() {
 		SharedPreferences sharedPreferences = getSharedPreferences("isFirst", MODE_PRIVATE);
 		boolean isFirst = sharedPreferences.getBoolean("isFirst", true);

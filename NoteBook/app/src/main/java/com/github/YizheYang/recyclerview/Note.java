@@ -8,13 +8,6 @@ public class Note {
 	public String date;
 	public int secret;
 
-	public Note(String id, String t, String c, String d) {
-		this.id = id;
-		this.title = t;
-		this.content = c;
-		this.date = d;
-	}
-
 	public Note(String id, String t, String c, String d, int s) {
 		this.id = id;
 		this.title = t;

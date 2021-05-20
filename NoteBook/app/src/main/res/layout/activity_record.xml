@@ -34,7 +34,7 @@
             android:id="@+id/record_icon"
             android:layout_width="200dp"
             android:layout_height="200dp"
-            android:src="@drawable/record"
+            android:src="@drawable/baseline_mic_black_48"
             android:layout_centerInParent="true"
             android:clickable="false"/>
 

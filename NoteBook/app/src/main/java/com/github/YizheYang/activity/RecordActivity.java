@@ -50,8 +50,27 @@ public class RecordActivity extends MyAppCompatActivity {
 	private String name = null;
 	private MediaRecorder mediaRecorder;
 
-	private ImageView background;
-	private String bgPath;
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+			if (mediaRecorder != null) {
+				Toast.makeText(this, "请结束录音再退出本页", Toast.LENGTH_SHORT).show();
+				return false;
+			}
+			AlertDialog.Builder builder = new AlertDialog.Builder(this)
+					.setTitle("警告:")
+					.setMessage("是否退出本页？");
+			builder.setPositiveButton("是", (dialog, which) -> {
+				this.finish();
+				dialog.dismiss();
+			});
+			builder.setNegativeButton("否", (dialog, which) -> dialog.dismiss());
+			builder.create();
+			builder.show();
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
 
 	@RequiresApi(api = Build.VERSION_CODES.Q)
 	@Override
@@ -63,16 +82,16 @@ public class RecordActivity extends MyAppCompatActivity {
 		start = findViewById(R.id.record_start);
 		finish = findViewById(R.id.record_finish);
 		titleLayout = findViewById(R.id.record_title);
-		background = findViewById(R.id.second_background);
+		ImageView background = findViewById(R.id.second_background);
 
 		Intent it = getIntent();
 		int color = it.getIntExtra("color", R.color.white);
 		getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
-		bgPath = it.getStringExtra("path");
+		String bgPath = it.getStringExtra("path");
 		if (bgPath != null && !bgPath.equals("")) {
-			handler.sendEmptyMessage(3);
+			Bitmap bitmap = BitmapFactory.decodeFile(bgPath);
+			background.setImageBitmap(bitmap);
 		}
-
 		mode = it.getIntExtra("mode", RECORD_MODE);
 		if (mode == PLAY_MODE) {
 			Bundle bundle = it.getBundleExtra("data");
@@ -88,11 +107,10 @@ public class RecordActivity extends MyAppCompatActivity {
 		}
 		if (mode == RECORD_MODE) {
 			start.setOnClickListener(v -> {
-				if (name != null) {
+				if (name != null) {//可以重复多次开始，只保存最后一次
 					File f = new File(path, name);
 					f.delete();
 				}
-//				MyTimer mt = new MyTimer();
 				name = "record_" + MyTimer.getTime() + ".amr";
 				MyLog.d(this, "name:" + name);
 				File file1 = new File(path, name);
@@ -114,16 +132,13 @@ public class RecordActivity extends MyAppCompatActivity {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				//隐藏开始按钮，显示结束按钮
-				Message message = new Message();
-				message.what = 0;
-				handler.sendMessage(message);
+				whenStart();
 				//开始计时
-				refreshTime.post(task);
+				handler.post(task);
 			});
 
 			finish.setOnClickListener(v -> {
-				refreshTime.removeCallbacks(task);
+				handler.removeCallbacks(task);
 				try {
 					mediaRecorder.stop();
 				} catch (Exception e) {
@@ -132,9 +147,7 @@ public class RecordActivity extends MyAppCompatActivity {
 				}
 				mediaRecorder.release();
 				mediaRecorder = null;
-				Message message = new Message();
-				message.what = 2;
-				handler.sendMessage(message);
+				whenFinish();
 				Toast.makeText(RecordActivity.this, "录制成功", Toast.LENGTH_SHORT).show();
 			});
 
@@ -173,11 +186,8 @@ public class RecordActivity extends MyAppCompatActivity {
 			});
 		} else if (mode == PLAY_MODE) {
 			titleLayout.save.setVisibility(View.INVISIBLE);
-			titleLayout.save.setClickable(false);
-
 			MediaPlayer.OnCompletionListener onCompletionListener = mp -> {
-				refreshTime.removeCallbacks(task);
-
+				handler.removeCallbacks(task);
 				try {
 					player.stop();
 				}catch (Exception e) {
@@ -186,11 +196,10 @@ public class RecordActivity extends MyAppCompatActivity {
 				}
 				player.release();
 				player = null;
-				Message message = new Message();
-				message.what = 2;
-				handler.sendMessage(message);
+				whenFinish();
 				Toast.makeText(RecordActivity.this, "播放完毕", Toast.LENGTH_SHORT).show();
 			};
+
 			start.setOnClickListener(v -> {
 				player = new MediaPlayer();
 				player.setOnCompletionListener(onCompletionListener);
@@ -201,16 +210,12 @@ public class RecordActivity extends MyAppCompatActivity {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-
-				Message message = new Message();
-				message.what = 0;
-				handler.sendMessage(message);
-
-				refreshTime.post(task);
+				whenStart();
+				handler.post(task);
 			});
 
 			finish.setOnClickListener(v -> {
-				refreshTime.removeCallbacks(task);
+				handler.removeCallbacks(task);
 				try {
 					player.stop();
 				}catch (Exception e) {
@@ -219,103 +224,72 @@ public class RecordActivity extends MyAppCompatActivity {
 				}
 				player.release();
 				player = null;
-				Message message2 = new Message();
-				message2.what = 2;
-				handler.sendMessage(message2);
+				whenFinish();
 			});
 		}
 	}
 
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-			if (mediaRecorder != null) {
-				Toast.makeText(this, "请结束录音再退出本页", Toast.LENGTH_SHORT).show();
-				return false;
-			}
-			AlertDialog.Builder builder = new AlertDialog.Builder(this)
-					.setTitle("警告:")
-					.setMessage("是否退出本页？");
-			builder.setPositiveButton("是", (dialog, which) -> {
-				this.finish();
-				dialog.dismiss();
-			});
-			builder.setNegativeButton("否", (dialog, which) -> dialog.dismiss());
-			builder.create();
-			builder.show();
-			return true;
-		}
-		return super.onKeyDown(keyCode, event);
-	}
-
-	private final Handler refreshTime = new Handler();
+	/**
+	 * 更新录制/播放时间
+	 */
 	private final Runnable task = new Runnable() {
 		@Override
 		public void run() {
-			refreshTime.postDelayed(this,1000);
-			Message message = new Message();
-			message.what = 1;
-			handler.sendMessage(message);
+			String[] oldTime = time.getText().toString().split(":");
+			int hour = Integer.parseInt(oldTime[0]);
+			int minute = Integer.parseInt(oldTime[1]);
+			int second = Integer.parseInt(oldTime[2]);
+			if (second < 59) {
+				second++;
+			} else if (second == 59 && minute < 59) {
+				minute++;
+				second = 0;
+			}
+			if (second == 59 && minute == 59 && hour < 98) {
+				hour++;
+				minute = 0;
+				second = 0;
+			}
+			oldTime[0] = hour + "";
+			oldTime[1] = minute + "";
+			oldTime[2] = second + "";
+			if (second < 10)
+				oldTime[2] = "0" + second;
+			if (minute < 10)
+				oldTime[1] = "0" + minute;
+			if (hour < 10)
+				oldTime[0] = "0" + hour;
+			time.setText(oldTime[0] + ":" + oldTime[1] + ":" + oldTime[2]);
+			handler.postDelayed(this,1000);
 		}
 	};
 
-	private final Handler handler = new Handler(Looper.getMainLooper()) {
-		@Override
-		public void handleMessage(@NonNull Message msg) {
-			super.handleMessage(msg);
-			switch (msg.what) {
-				case 0:
-					if (!time.getText().toString().equals(getResources().getString(R.string._00_00_00))) {
-						time.setText(getResources().getString(R.string._00_00_00));
-					}
-					if (mode == RECORD_MODE) {
-						titleLayout.title.setText(name);
-					}
-					start.setVisibility(View.INVISIBLE);
-					start.setClickable(false);
-					finish.setVisibility(View.VISIBLE);
-					finish.setClickable(true);
-					break;
-				case 1:
-					String[] oldTime = time.getText().toString().split(":");
-					int hour = Integer.parseInt(oldTime[0]);
-					int minute = Integer.parseInt(oldTime[1]);
-					int second = Integer.parseInt(oldTime[2]);
-					if(second < 59){
-						second++;
-					}
-					else if(second == 59 && minute < 59){
-						minute++;
-						second = 0;
-					}
-					if(second == 59 && minute == 59 && hour < 98){
-						hour++;
-						minute = 0;
-						second = 0;
-					}
-					oldTime[0] = hour + "";
-					oldTime[1] = minute + "";
-					oldTime[2] = second + "";
-					if(second < 10)
-						oldTime[2] = "0" + second;
-					if(minute < 10)
-						oldTime[1] = "0" + minute;
-					if(hour < 10)
-						oldTime[0] = "0" + hour;
-					time.setText(oldTime[0] + ":" + oldTime[1] + ":" + oldTime[2]);
-					break;
-				case 2:
-					finish.setClickable(false);
-					finish.setVisibility(View.INVISIBLE);
-					start.setClickable(true);
-					start.setVisibility(View.VISIBLE);
-					break;
-				case 3:
-					Bitmap bitmap = BitmapFactory.decodeFile(bgPath);
-					background.setImageBitmap(bitmap);
-					break;
-			}
+	private final Handler handler = new Handler(Looper.getMainLooper());
+
+	/**
+	 * 显示开始后的界面
+	 */
+	private void whenStart() {
+		if (!time.getText().toString().equals(getResources().getString(R.string._00_00_00))) {
+			time.setText(getResources().getString(R.string._00_00_00));
 		}
-	};
+		if (mode == RECORD_MODE) {
+			titleLayout.title.setText(name);
+		}
+		start.setVisibility(View.INVISIBLE);
+		start.setClickable(false);
+		finish.setVisibility(View.VISIBLE);
+		finish.setClickable(true);
+	}
+
+	/**
+	 * 显示停止后的界面
+	 */
+	private void whenFinish() {
+		finish.setClickable(false);
+		finish.setVisibility(View.INVISIBLE);
+		start.setClickable(true);
+		start.setVisibility(View.VISIBLE);
+	}
 
 }

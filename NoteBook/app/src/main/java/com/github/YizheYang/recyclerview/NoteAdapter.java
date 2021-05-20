@@ -14,10 +14,8 @@ import java.util.List;
 
 public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 
-	private Context mContext;
-	private RecyclerView mRecyclerView;
+	private final Context mContext;
 	private final List<Note> mNoteList;
-
 	private OnItemClickListener mOnItemClickListener;
 	private OnLongClickListener mOnLongClickListener;
 
@@ -44,12 +42,9 @@ public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 			holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position));
 		}
 		if (mOnLongClickListener != null) {
-			holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-				@Override
-				public boolean onLongClick(View v) {
-					mOnLongClickListener.OnLongClick(v, holder.getAdapterPosition());
-					return true;
-				}
+			holder.itemView.setOnLongClickListener(v -> {
+				mOnLongClickListener.OnLongClick(v, holder.getAdapterPosition());
+				return true;
 			});
 		}
 	}
@@ -59,42 +54,38 @@ public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 		return mNoteList.size();
 	}
 
-//	@Override
-//	public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
-//		try {
-//			if (mRecyclerView == null) {
-//				mRecyclerView = recyclerView;
-//			}
-//			ifGridLayoutManager();
-//		} catch (Exception e){
-//			e.printStackTrace();
-//		}
-//	}
-
 	public NoteAdapter(Context context, List<Note> list) {
 		this.mContext = context;
 		this.mNoteList = list;
 	}
 
-//	/**
-//	 * 在网格流的显示下让头部和尾部自成一行
-//	 */
-//	private void ifGridLayoutManager() {
-//		if (mRecyclerView == null) {
-//			return;
-//		}
-//		final RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
-//		if (layoutManager instanceof GridLayoutManager) {
-//			((GridLayoutManager) layoutManager).setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-//				@Override
-//				public int getSpanSize(int position) {
-//					return (isHeaderView(position) || isFooterView(position))
-//							? ((GridLayoutManager) layoutManager).getSpanCount() : 1;
-//				}
-//			});
-//		}
-//	}
+	public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+		this.mOnItemClickListener = onItemClickListener;
+	}
 
+	/**
+	 * 自定义单击事件
+	 */
+	public interface OnItemClickListener{
+		void onItemClick(View view, int position);
+	}
+
+	public void setOnLongClickListener(OnLongClickListener onLongClickListener) {
+		this.mOnLongClickListener = onLongClickListener;
+	}
+
+	/**
+	 * 自定义长按事件
+	 */
+	public interface OnLongClickListener{
+		void OnLongClick(View view, int position);
+	}
+
+	/**
+	 将图片或者录音地址改为[图片]或者[录音]，以便显示在主页
+	 * @param c 存在地址的字符串
+	 * @return 格式化完的字符串
+	 */
 	private String replaceContent(String c) {
 		String[] strings = c.split("\n");
 		for (int i = 0;i < strings.length;i++) {
@@ -117,19 +108,4 @@ public class NoteAdapter extends RecyclerView.Adapter<ViewHolder> {
 		return result;
 	}
 
-	public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
-		this.mOnItemClickListener = onItemClickListener;
-	}
-
-	public interface OnItemClickListener{
-		void onItemClick(View view, int position);
-	}
-
-	public void setOnLongClickListener(OnLongClickListener onLongClickListener) {
-		this.mOnLongClickListener = onLongClickListener;
-	}
-
-	public interface OnLongClickListener{
-		void OnLongClick(View view, int position);
-	}
 }

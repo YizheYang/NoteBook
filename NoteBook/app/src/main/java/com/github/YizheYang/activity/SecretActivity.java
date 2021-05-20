@@ -7,10 +7,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 
-import com.github.YizheYang.tools.MyAppCompatActivity;
 import com.github.YizheYang.R;
+import com.github.YizheYang.tools.MyAppCompatActivity;
 
 public class SecretActivity extends MyAppCompatActivity {
 
@@ -21,18 +20,12 @@ public class SecretActivity extends MyAppCompatActivity {
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_secret);
-		ActionBar actionBar = getSupportActionBar();
-		if (actionBar != null) {
-			actionBar.hide();
-		}
-
 		Intent intent = getIntent();
 		password = intent.getStringExtra("password");
-
-
 		editText = findViewById(R.id.matchPassword);
 		Button commit = findViewById(R.id.matchCommit);
 		Button cancel = findViewById(R.id.matchCancel);
+
 		commit.setOnClickListener(v -> {
 			if (editText.getText().toString().isEmpty()) {
 				Toast.makeText(this, "密码不能为空", Toast.LENGTH_SHORT).show();

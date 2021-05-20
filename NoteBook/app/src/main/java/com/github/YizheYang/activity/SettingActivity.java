@@ -31,13 +31,11 @@ import com.github.YizheYang.R;
 import com.google.android.material.button.MaterialButton;
 
 public class SettingActivity extends MyAppCompatActivity {
-	private int color = R.color.white;
 
+	private int color = R.color.white;
 	private String path;
 	private String password;
-	private MySQLiteOpenHelper helper;
 	private SQLiteDatabase db;
-
 	private boolean colorChoose = false;
 	private ImageView background;
 
@@ -45,7 +43,7 @@ public class SettingActivity extends MyAppCompatActivity {
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_setting);
-		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null);
+		MySQLiteOpenHelper helper = new MySQLiteOpenHelper(this, "NoteBook.db", null);
 		db = helper.getWritableDatabase();
 
 		Intent intent = getIntent();
@@ -86,7 +84,6 @@ public class SettingActivity extends MyAppCompatActivity {
 			finish();
 		});
 
-
 		RadioGroup group1 = findViewById(R.id.radioGroup1);
 		group1.setOnCheckedChangeListener((group, checkedId) -> {
 			switch (checkedId){
@@ -111,7 +108,6 @@ public class SettingActivity extends MyAppCompatActivity {
 				case R.id.beijingmibai:
 					color = R.color.背景米白;
 					break;
-				default:
 			}
 			colorChoose = true;
 			getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
@@ -121,7 +117,7 @@ public class SettingActivity extends MyAppCompatActivity {
 		EditText newPassword1 = findViewById(R.id.setting_newPassword1);
 		EditText newPassword2 = findViewById(R.id.setting_newPassword2);
 		MaterialButton button4 = findViewById(R.id.setting_button4);
-		button4.setOnClickListener(v1 -> {
+		button4.setOnClickListener(v1 -> {//修改密码的逻辑
 			if (oldPassword.getText().toString().isEmpty() || newPassword1.getText().toString().isEmpty() || newPassword2.getText().toString().isEmpty()) {
 				Toast.makeText(this, "密码不能为空", Toast.LENGTH_SHORT).show();
 			}else {

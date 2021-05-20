@@ -128,7 +128,7 @@
             android:id="@+id/setting_button1"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:backgroundTint="@color/transparent"
+            android:backgroundTint="@color/white"
             android:text="自定义纯色背景"
             android:textColor="@color/black"/>
 
@@ -136,7 +136,7 @@
             android:id="@+id/setting_button2"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:backgroundTint="@color/transparent"
+            android:backgroundTint="@color/white"
             android:text="选择背景图片"
             android:textColor="@color/black"
             />
@@ -145,7 +145,7 @@
             android:id="@+id/setting_button3"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:backgroundTint="@color/transparent"
+            android:backgroundTint="@color/white"
             android:text="应用背景图片"
             android:textColor="@color/black"
             />
@@ -154,6 +154,7 @@
             android:id="@+id/setting_oldPassword"
             android:layout_width="match_parent"
             android:layout_height="48dp"
+            android:background="@color/white"
             android:hint="请输入旧密码"
             android:inputType="textPassword"/>
 
@@ -161,6 +162,7 @@
             android:id="@+id/setting_newPassword1"
             android:layout_width="match_parent"
             android:layout_height="48dp"
+            android:background="@color/white"
             android:hint="请输入新密码"
             android:inputType="textPassword"/>
 
@@ -168,6 +170,7 @@
             android:id="@+id/setting_newPassword2"
             android:layout_width="match_parent"
             android:layout_height="48dp"
+            android:background="@color/white"
             android:hint="再次输入新密码"
             android:inputType="textPassword"/>
 
@@ -175,7 +178,7 @@
             android:id="@+id/setting_button4"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:backgroundTint="@color/transparent"
+            android:backgroundTint="@color/white"
             android:text="更改隐私密码"
             android:textColor="@color/black"/>
 

@@ -3,20 +3,14 @@ package com.github.YizheYang.activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.widget.ImageView;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.github.YizheYang.tools.MyAppCompatActivity;
 import com.github.YizheYang.R;
+import com.github.YizheYang.tools.MyAppCompatActivity;
 
 public class ViewPictureActivity extends MyAppCompatActivity {
-
-	private ImageView imageView;
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -24,20 +18,9 @@ public class ViewPictureActivity extends MyAppCompatActivity {
 		setContentView(R.layout.activity_view);
 		Intent intent = getIntent();
 		String path = intent.getStringExtra("path");
-		imageView = findViewById(R.id.view);
+		ImageView imageView = findViewById(R.id.view);
 		Uri uri = Uri.parse(path);
-		Message message = new Message();
-		message.obj = uri;
-		handler.sendMessage(message);
+		imageView.setImageURI(uri);
 	}
-
-	Handler handler = new Handler(Looper.getMainLooper()) {
-		@Override
-		public void handleMessage(@NonNull Message msg) {
-			super.handleMessage(msg);
-			Uri uri = (Uri) msg.obj;
-			imageView.setImageURI(uri);
-		}
-	};
 
 }

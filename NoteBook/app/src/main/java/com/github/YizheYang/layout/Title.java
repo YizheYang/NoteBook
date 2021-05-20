@@ -13,8 +13,6 @@ import androidx.annotation.Nullable;
 
 import com.github.YizheYang.R;
 
-import org.w3c.dom.Text;
-
 public class Title extends LinearLayout {
 
 	public ImageButton back;

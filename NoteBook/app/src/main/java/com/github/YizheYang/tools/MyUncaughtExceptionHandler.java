@@ -37,13 +37,10 @@ public class MyUncaughtExceptionHandler implements Thread.UncaughtExceptionHandl
 		System.exit(1);
 	}
 
-
-
 	/**
 	 * 获取错误的信息
-	 *
-	 * @param throwable
-	 * @return
+	 * @param throwable 抛出的异常信息
+	 * @return 异常信息的字符串
 	 */
 	private String getStackTraceInfo(final Throwable throwable) {
 		PrintWriter pw = null;
@@ -61,7 +58,10 @@ public class MyUncaughtExceptionHandler implements Thread.UncaughtExceptionHandl
 		return writer.toString();
 	}
 
-
+	/**
+	 * 保存异常信息
+	 * @param errorMessage 接收的异常信息的内容
+	 */
 	private void saveThrowableMessage(String errorMessage) {
 		if (errorMessage.isEmpty()) {
 			return;
@@ -73,6 +73,11 @@ public class MyUncaughtExceptionHandler implements Thread.UncaughtExceptionHandl
 		writeStringToFile(errorMessage, file);
 	}
 
+	/**
+	 * 将字符串写入本地
+	 * @param errorMessage 要写入的字符串
+	 * @param file 写入的文件位置
+	 */
 	private void writeStringToFile(final String errorMessage, final File file) {
 		new Thread(() -> {
 			FileOutputStream outputStream = null;

@@ -26,6 +26,7 @@ import android.text.Spanned;
 import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -48,7 +49,6 @@ import java.io.FileNotFoundException;
 
 public class SecondActivity extends MyAppCompatActivity {
 
-	private static final String TAG = "SecondActivity";
 	private int mode;
 	private String editId;
 
@@ -56,21 +56,16 @@ public class SecondActivity extends MyAppCompatActivity {
 	private static final int EDIT_MODE = 22;
 	private static final int RECORD_MODE = 31;
 	private static final int PLAY_MODE = 32;
-
-	private final int ADD_PICTURE = 1;
-	private final int CAMERA = 2;
-	private final int RECORD = 3;
-	private final int DRAW = 4;
+	private static final int ADD_PICTURE = 1;
+	private static final int CAMERA = 2;
+	private static final int RECORD = 3;
+	private static final int DRAW = 4;
 
 	private EditText title;
 	private EditText content;
-
-	private MyTimer myTimer;
 	private MySQLiteOpenHelper helper;
-
 	private int secret = 0;
 	private CheckBox checkBox;
-
 	private ImageView background;
 	private String path;
 
@@ -101,7 +96,6 @@ public class SecondActivity extends MyAppCompatActivity {
 
 		helper = new MySQLiteOpenHelper(this, "NoteBook.db", null);
 		helper.getWritableDatabase();
-//		myTimer = new MyTimer();
 		title = findViewById(R.id.first_EditText);
 		content = findViewById(R.id.second_EditText);
 		Button testButton = findViewById(R.id.test2);
@@ -192,8 +186,9 @@ public class SecondActivity extends MyAppCompatActivity {
 
 		EditText content = findViewById(R.id.second_EditText);
 		content.setOnClickListener(v -> {
-//				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-//				imm.hideSoftInputFromWindow(content.getWindowToken(), 0);
+			//让编辑框里的图片或者录音能够在被点击时正确地打开
+//			InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//			imm.hideSoftInputFromWindow(content.getWindowToken(), 0);
 			Spanned s = content.getText();
 			ImageSpan[] imageSpans = s.getSpans(0, s.length(), ImageSpan.class);
 			int selectionStart = content.getSelectionStart();
@@ -215,11 +210,17 @@ public class SecondActivity extends MyAppCompatActivity {
 				}
 			}
 			//打开软键盘
-//				imm.showSoftInput(content, 0);
+//			imm.showSoftInput(content, 0);
 		});
 
 	}
 
+	/**
+	 * 对活动的返回值进行处理，具体为加上指定的图片
+	 * @param requestCode 启动别的活动时的请求码
+	 * @param resultCode 别的活动返回的结果码
+	 * @param data 别的活动返回的数据
+	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -249,7 +250,6 @@ public class SecondActivity extends MyAppCompatActivity {
 							bd = data.getExtras();
 							bm = bd.getParcelable("data");
 						}
-//						MyTimer myTimer = new MyTimer();
 						String name = "temp_" + MyTimer.getTime();
 						location = Environment.getExternalStorageDirectory() + "/Pictures/" + name + ".jpg";
 						String result = MediaStore.Images.Media.insertImage(getContentResolver(), bm, name, null);
@@ -263,7 +263,7 @@ public class SecondActivity extends MyAppCompatActivity {
 				case RECORD:
 					bd = data.getExtras();
 					location = bd.getString("audio");
-					bm = BitmapFactory.decodeResource(getResources(), R.drawable.record);
+					bm = BitmapFactory.decodeResource(getResources(), R.drawable.baseline_mic_black_48);
 					break;
 				case DRAW:
 					bd = data.getExtras();
@@ -292,81 +292,6 @@ public class SecondActivity extends MyAppCompatActivity {
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);
-	}
-
-	private void scaleBitmap(Bitmap bm, String location) {
-		int imgWidth = bm.getWidth();
-		int imgHeight = bm.getHeight();
-		double partion = imgWidth*1.0/imgHeight;
-		double sqrtLength = Math.sqrt(partion*partion + 1);
-		//新的缩略图大小
-		double newImgW = 480*(partion / sqrtLength);
-		double newImgH = 480*(1 / sqrtLength);
-		float scaleW = (float) (newImgW/imgWidth);
-		float scaleH = (float) (newImgH/imgHeight);
-		Matrix mx = new Matrix();
-		//对原图片进行缩放
-		mx.postScale(scaleW, scaleH);
-		bm = Bitmap.createBitmap(bm, 0, 0, imgWidth, imgHeight, mx, true);
-		final ImageSpan imageSpan = new ImageSpan(this, bm);
-		SpannableString spannableString = new SpannableString(location);
-		spannableString.setSpan(imageSpan, 0, spannableString.length(), SpannableString.SPAN_MARK_MARK);
-		//光标移到下一行
-		content.append("\n");
-		Editable editable = content.getEditableText();
-		int selectionIndex = content.getSelectionStart();
-		spannableString.getSpans(0, spannableString.length(), ImageSpan.class);
-		//将图片添加进EditText中
-		editable.insert(selectionIndex, spannableString);
-		//添加图片后自动空出两行
- 		content.append("\n");
-	}
-
-	private void viewPicture(Bitmap bitmap, Uri uri) {
-	 if (bitmap == null) {
-		 return;
-	 }
-	 Intent intent = new Intent(SecondActivity.this, ViewPictureActivity.class);
-	 intent.putExtra("path", uri.toString());
-	 startActivity(intent);
-//	 Intent intent = new Intent(Intent.ACTION_VIEW);
-//	 intent.setDataAndType(uri, "image/*");
-//	 startActivity(intent);
-	}
-
-	private void playRecord(Uri uri) {
-		Intent intent = new Intent(SecondActivity.this, RecordActivity.class);
-		intent.putExtra("mode", PLAY_MODE);
-		Bundle bundle = new Bundle();
-		bundle.putString("path", uri.toString());
-		intent.putExtra("data", bundle);
-		startActivity(intent);
-	}
-
-	private void loadEditData(String c) {
-		String[] strings = c.split("\n");
-		for (String string : strings) {
-			String type = null;
-			if (string.length() > 4) {
-				type = string.substring(string.length() - 4);
-			}
-			Bitmap bm;
-			String location;
-			if (type != null) {
-				if (type.equals(".amr")) {
-					location = string;
-					bm = BitmapFactory.decodeResource(getResources(), R.drawable.record);
-					scaleBitmap(bm, location);
-					continue;
-				} else if (type.equals(".jpg")) {
-					location = string;
-					bm = BitmapFactory.decodeFile(location);
-					scaleBitmap(bm, location);
-					continue;
-				}
-			}
-			content.append(string + "\n");
-		}
 	}
 
 	/**
@@ -509,4 +434,99 @@ public class SecondActivity extends MyAppCompatActivity {
 	public static boolean isGooglePhotosUri(Uri uri) {
 		return "com.google.android.apps.photos.content".equals(uri.getAuthority());
 	}
+
+	/**
+	 * 将选中的图片压缩并插入到编辑框中
+	 * @param bm 已经选中的图片
+	 * @param location 该图片在手机上的位置
+	 */
+	private void scaleBitmap(Bitmap bm, String location) {
+		int imgWidth = bm.getWidth();
+		int imgHeight = bm.getHeight();
+		double partion = imgWidth*1.0/imgHeight;
+		double sqrtLength = Math.sqrt(partion*partion + 1);
+		//新的缩略图大小
+		double newImgW = 480*(partion / sqrtLength);
+		double newImgH = 480*(1 / sqrtLength);
+		float scaleW = (float) (newImgW/imgWidth);
+		float scaleH = (float) (newImgH/imgHeight);
+		Matrix mx = new Matrix();
+		//对原图片进行缩放
+		mx.postScale(scaleW, scaleH);
+		bm = Bitmap.createBitmap(bm, 0, 0, imgWidth, imgHeight, mx, true);
+		final ImageSpan imageSpan = new ImageSpan(this, bm);
+		SpannableString spannableString = new SpannableString(location);
+		spannableString.setSpan(imageSpan, 0, spannableString.length(), SpannableString.SPAN_MARK_MARK);
+		//光标移到下一行
+		content.append("\n");
+		Editable editable = content.getEditableText();
+		int selectionIndex = content.getSelectionStart();
+		spannableString.getSpans(0, spannableString.length(), ImageSpan.class);
+		//将图片添加进EditText中
+		editable.insert(selectionIndex, spannableString);
+		//添加图片后自动空出两行
+		content.append("\n");
+	}
+
+	/**
+	 * 查看图片
+	 * @param bitmap 想要查看的图片
+	 * @param uri 该图片在手机上的地址
+	 */
+	private void viewPicture(Bitmap bitmap, Uri uri) {
+		if (bitmap == null) {
+			return;
+		}
+		Intent intent = new Intent(SecondActivity.this, ViewPictureActivity.class);
+		intent.putExtra("path", uri.toString());
+		startActivity(intent);
+		//一开始用系统图库查看，后来决定自己写一个查看器
+		//	 Intent intent = new Intent(Intent.ACTION_VIEW);
+		//	 intent.setDataAndType(uri, "image/*");
+		//	 startActivity(intent);
+	}
+
+	/**
+	 * 播放选中的录音，具体为用播放模式启动RecordActivity
+	 * @param uri 录音在本地的位置
+	 */
+	private void playRecord(Uri uri) {
+		Intent intent = new Intent(SecondActivity.this, RecordActivity.class);
+		intent.putExtra("mode", PLAY_MODE);
+		Bundle bundle = new Bundle();
+		bundle.putString("path", uri.toString());
+		intent.putExtra("data", bundle);
+		startActivity(intent);
+	}
+
+	/**
+	 * 加载未处理过的含有路径的内容，将文件路径替换成对应的形式
+	 * @param c 提取出来的字符串
+	 */
+	private void loadEditData(String c) {
+		String[] strings = c.split("\n");
+		for (String string : strings) {
+			String type = null;
+			if (string.length() > 4) {
+				type = string.substring(string.length() - 4);
+			}
+			Bitmap bm;
+			String location;
+			if (type != null) {
+				if (type.equals(".amr")) {
+					location = string;
+					bm = BitmapFactory.decodeResource(getResources(), R.drawable.baseline_mic_black_48);
+					scaleBitmap(bm, location);
+					continue;
+				} else if (type.equals(".jpg")) {
+					location = string;
+					bm = BitmapFactory.decodeFile(location);
+					scaleBitmap(bm, location);
+					continue;
+				}
+			}
+			content.append(string + "\n");
+		}
+	}
+
 }

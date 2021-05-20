@@ -1,7 +1,6 @@
 package com.github.YizheYang.layout;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -22,12 +21,12 @@ import java.util.Iterator;
 
 public class DrawView extends View {
 
-	private int width = 100;
-	private int height = 100;
+	private final int width;
+	private final int height;
 	private Paint paint;
 	private Paint bitmapPaint;
-	private ArrayList<DrawPath> savePath;
-	private ArrayList<DrawPath> deletePath;
+	private final ArrayList<DrawPath> savePath;
+	private final ArrayList<DrawPath> deletePath;
 	private DrawPath dp;
 	private Bitmap bitmap;
 	private Canvas canvas;
@@ -41,86 +40,62 @@ public class DrawView extends View {
 	private static final int PEN = 1;
 	private static final int ERASER = 2;
 
-	private final int[] paintColor = {getResources().getColor(R.color.black), getResources().getColor(R.color.purple_200)
-			, getResources().getColor(R.color.purple_500), getResources().getColor(R.color.purple_700)
-			, getResources().getColor(R.color.teal_200), getResources().getColor(R.color.teal_700)};
+	private final int[] paintColor = {getResources().getColor(R.color.black)
+			, getResources().getColor(R.color.purple_200)
+			, getResources().getColor(R.color.purple_500)
+			, getResources().getColor(R.color.purple_700)
+			, getResources().getColor(R.color.teal_200)
+			, getResources().getColor(R.color.teal_700)};
 
 	public DrawView(Context context) {
 		super(context);
 		DisplayMetrics dm = new DisplayMetrics();
 		((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(dm);
-
 		width = dm.widthPixels;
 		height = dm.heightPixels - 2 * 45;
-
 		initBoard();
-		savePath = new ArrayList<DrawPath>();
-		deletePath = new ArrayList<DrawPath>();
-
+		savePath = new ArrayList<>();
+		deletePath = new ArrayList<>();
 	}
 
 	public DrawView(Context context, @Nullable AttributeSet attrs) {
 		super(context, attrs);
 		DisplayMetrics dm = new DisplayMetrics();
 		((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(dm);
-
 		width = dm.widthPixels;
 		height = dm.heightPixels - 2 * 45;
-
 		initBoard();
-		savePath = new ArrayList<DrawPath>();
-		deletePath = new ArrayList<DrawPath>();
-
+		savePath = new ArrayList<>();
+		deletePath = new ArrayList<>();
 	}
 
 	public DrawView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
 		DisplayMetrics dm = new DisplayMetrics();
 		((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(dm);
-
 		width = dm.widthPixels;
 		height = dm.heightPixels - 2 * 45;
-
 		initBoard();
-		savePath = new ArrayList<DrawPath>();
-		deletePath = new ArrayList<DrawPath>();
-
+		savePath = new ArrayList<>();
+		deletePath = new ArrayList<>();
 	}
 
-	public DrawView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-		super(context, attrs, defStyleAttr, defStyleRes);
-		DisplayMetrics dm = new DisplayMetrics();
-		((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(dm);
-
-		width = dm.widthPixels;
-		height = dm.heightPixels - 2 * 45;
-
-		initBoard();
-		savePath = new ArrayList<DrawPath>();
-		deletePath = new ArrayList<DrawPath>();
-	}
-
+	/**
+	 * 初始化画板
+	 */
 	public void initBoard() {
 		setPaintStyle();
 		bitmapPaint = new Paint(Paint.DITHER_FLAG);
-
 		bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
 		canvas = new Canvas(bitmap);
-
 		canvas.drawColor(getResources().getColor(R.color.white));
 		path = new Path();
 		bitmapPaint = new Paint(Paint.DITHER_FLAG);
 	}
 
-	@Override
-	protected void onDraw(Canvas canvas) {
-		super.onDraw(canvas);
-		canvas.drawBitmap(bitmap, 0, 0, bitmapPaint);
-		if (path != null) {
-			canvas.drawPath(path, paint);
-		}
-	}
-
+	/**
+	 * 设置画下来的颜色
+	 */
 	public void setPaintStyle() {
 		paint = new Paint();
 		paint.setAntiAlias(true);
@@ -136,6 +111,10 @@ public class DrawView extends View {
 		}
 	}
 
+	/**
+	 * 选择是画笔还是橡皮擦
+	 * @param choose 选择的选项
+	 */
 	public void selectPaintStyle(int choose) {
 		if (choose == 0) {
 			currentStyle = PEN;
@@ -147,17 +126,27 @@ public class DrawView extends View {
 		}
 	}
 
+	/**
+	 * 设置画笔大小
+	 * @param choose 选择的选项
+	 */
 	public void setPaintSize(int choose) {
 		currentSize = Integer.parseInt(this.getResources().getStringArray(R.array.paintSize)[choose]);
 		setPaintStyle();
 	}
 
+	/**
+	 * 设置画笔颜色
+	 * @param choose 选择的选项
+	 */
 	public void setPaintColor(int choose) {
 		currentColor = paintColor[choose];
 		setPaintStyle();
 	}
 
-	//撤回上一步
+	/**
+	 * 撤回上一步
+	 */
 	public void revoke() {
 		if (savePath != null && savePath.size() > 0) {
 			initBoard();
@@ -172,7 +161,10 @@ public class DrawView extends View {
 			invalidate();
 		}
 	}
-	//恢复下一步
+
+	/**
+	 * 恢复下一步
+	 */
 	public void resume() {
 		if (deletePath.size() > 0) {
 			DrawPath drawPath = deletePath.get(deletePath.size() - 1);
@@ -182,7 +174,10 @@ public class DrawView extends View {
 			invalidate();
 		}
 	}
-	//清除
+
+	/**
+	 * 清除整个画板
+	 */
 	public void remove() {
 		initBoard();
 		invalidate();
@@ -194,46 +189,18 @@ public class DrawView extends View {
 		return bitmap;
 	}
 
-
-	private void touch_start(float x, float y) {
-		path.reset();//清空path
-		path.moveTo(x, y);
-		mX = x;
-		mY = y;
-	}
-	private void touch_move(float x, float y) {
-		float dx = Math.abs(x - mX);
-		float dy = Math.abs(y - mY);
-		if (dx >= TOUCH_TOLERANCE || dy >= TOUCH_TOLERANCE) {
-			//mPath.quadTo(mX, mY, x, y);
-			path.quadTo(mX, mY, (x + mX)/2, (y + mY)/2);//源代码是这样写的，可是我没有弄明白，为什么要这样？
-			mX = x;
-			mY = y;
-		}
-	}
-	private void touch_up() {
-		path.lineTo(mX, mY);
-		canvas.drawPath(path, paint);
-		savePath.add(dp);
-		path = null;
-
-	}
-
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		float x = event.getX();
 		float y = event.getY();
-
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
-
 				path = new Path();
 				dp = new DrawPath();
 				dp.path = path;
 				dp.paint = paint;
-
 				touch_start(x, y);
-				invalidate(); //清屏
+				invalidate();
 				break;
 			case MotionEvent.ACTION_MOVE:
 				touch_move(x, y);
@@ -245,6 +212,39 @@ public class DrawView extends View {
 				break;
 		}
 		return true;
+	}
+
+	@Override
+	protected void onDraw(Canvas canvas) {
+		super.onDraw(canvas);
+		canvas.drawBitmap(bitmap, 0, 0, bitmapPaint);
+		if (path != null) {
+			canvas.drawPath(path, paint);
+		}
+	}
+
+	private void touch_start(float x, float y) {
+		path.reset();
+		path.moveTo(x, y);
+		mX = x;
+		mY = y;
+	}
+
+	private void touch_move(float x, float y) {
+		float dx = Math.abs(x - mX);
+		float dy = Math.abs(y - mY);
+		if (dx >= TOUCH_TOLERANCE || dy >= TOUCH_TOLERANCE) {
+			path.quadTo(mX, mY, (x + mX)/2, (y + mY)/2);
+			mX = x;
+			mY = y;
+		}
+	}
+
+	private void touch_up() {
+		path.lineTo(mX, mY);
+		canvas.drawPath(path, paint);
+		savePath.add(dp);
+		path = null;
 	}
 
 }

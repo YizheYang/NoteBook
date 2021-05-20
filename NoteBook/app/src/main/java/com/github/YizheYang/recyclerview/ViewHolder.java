@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.github.YizheYang.R;
 
 public class ViewHolder extends RecyclerView.ViewHolder {
+
 	TextView title;
 	TextView content;
 	TextView date;

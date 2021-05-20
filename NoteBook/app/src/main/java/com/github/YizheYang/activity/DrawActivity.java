@@ -21,10 +21,69 @@ import com.github.YizheYang.layout.Title;
 public class DrawActivity extends MyAppCompatActivity {
 
 	private DrawView drawView;
-
 	private int select_color = 0;
 	private int select_size = 0;
 	private int select_style = 0;
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this)
+					.setTitle("警告:")
+					.setMessage("是否退出本页？");
+			builder.setPositiveButton("是", (dialog, which) -> {
+				this.finish();
+				dialog.dismiss();
+			});
+			builder.setNegativeButton("否", (dialog, which) -> dialog.dismiss());
+			builder.create();
+			builder.show();
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	/**
+	 * 更改画笔的颜色
+	 */
+	public void showPaintColorDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("请选择颜色：").setSingleChoiceItems(R.array.paintColor, select_color, (dialog, which) -> {
+			select_color = which;
+			drawView.setPaintColor(which);
+			dialog.dismiss();
+		});
+		builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
+		builder.create().show();
+	}
+
+	/**
+	 * 更改画笔的大小
+	 */
+	public void showPaintSizeDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("请选择大小：").setSingleChoiceItems(R.array.paintSize, select_size, (dialog, which) -> {
+			select_size = which;
+			drawView.setPaintSize(which);
+			dialog.dismiss();
+		});
+		builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
+		builder.create().show();
+	}
+
+	/**
+	 * 选择画笔或者是橡皮擦
+	 */
+	public void showMoreDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("请选择画笔或者橡皮擦：").setSingleChoiceItems(R.array.paintStyle, select_style, (dialog, which) -> {
+			select_style = which;
+			drawView.selectPaintStyle(which);
+			dialog.dismiss();
+		});
+		builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
+		builder.create().show();
+	}
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,7 +93,6 @@ public class DrawActivity extends MyAppCompatActivity {
 		Title title = findViewById(R.id.draw_title);
 		title.title.setText("画板");
 		title.save.setOnClickListener(v -> {
-//			MyTimer mt = new MyTimer();
 			String name = "tempDraw_" + MyTimer.getTime();
 			String result = MediaStore.Images.Media.insertImage(getContentResolver(), drawView.getBitmap(), name, null);
 			Intent it = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(result));
@@ -56,62 +114,11 @@ public class DrawActivity extends MyAppCompatActivity {
 		ImageButton remove = findViewById(R.id.remove);
 		remove.setOnClickListener(v -> drawView.remove());
 		ImageButton penSize = findViewById(R.id.penSize);
-		penSize.setOnClickListener(v -> showPaintSizeDialog(drawView));
+		penSize.setOnClickListener(v -> showPaintSizeDialog());
 		ImageButton board = findViewById(R.id.board);
-		board.setOnClickListener(v -> showPaintColorDialog(drawView));
+		board.setOnClickListener(v -> showPaintColorDialog());
 		ImageButton eraser = findViewById(R.id.eraser);
-		eraser.setOnClickListener(v -> showMoreDialog(drawView));
-	}
-
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this)
-					.setTitle("警告:")
-					.setMessage("是否退出本页？");
-			builder.setPositiveButton("是", (dialog, which) -> {
-				this.finish();
-				dialog.dismiss();
-			});
-			builder.setNegativeButton("否", (dialog, which) -> dialog.dismiss());
-			builder.create();
-			builder.show();
-			return true;
-		}
-		return super.onKeyDown(keyCode, event);
-	}
-
-	public void showPaintColorDialog(View view) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("请选择颜色：").setSingleChoiceItems(R.array.paintColor, select_color, (dialog, which) -> {
-			select_color = which;
-			drawView.setPaintColor(which);
-			dialog.dismiss();
-		});
-		builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
-		builder.create().show();
-	}
-
-	public void showPaintSizeDialog(View view) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("请选择大小：").setSingleChoiceItems(R.array.paintSize, select_size, (dialog, which) -> {
-			select_size = which;
-			drawView.setPaintSize(which);
-			dialog.dismiss();
-		});
-		builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
-		builder.create().show();
-	}
-
-	public void showMoreDialog(View view) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("请选择画笔或者橡皮擦：").setSingleChoiceItems(R.array.paintStyle, select_style, (dialog, which) -> {
-			select_style = which;
-			drawView.selectPaintStyle(which);
-			dialog.dismiss();
-		});
-		builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
-		builder.create().show();
+		eraser.setOnClickListener(v -> showMoreDialog());
 	}
 
 }
