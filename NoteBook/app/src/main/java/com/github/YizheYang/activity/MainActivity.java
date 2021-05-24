@@ -361,10 +361,7 @@ public class MainActivity extends MyAppCompatActivity {
 				if (path == null) {
 					path = "";
 				}
-				Message message = new Message();
-				message.what = 2;
-				message.obj = path;
-				handler.sendMessage(message);
+				setBackground(path);
 				ContentValues values = new ContentValues();
 				values.put("PATH", path);
 				db.update("Background", values, "PATH=?", new String[]{oldPath});
@@ -392,19 +389,6 @@ public class MainActivity extends MyAppCompatActivity {
 				isExit = false;
 			}else if (msg.what == 1) {
 				secret = 0;
-			}else if (msg.what == 2) {
-				if (msg.obj.toString().equals("")) {
-					background.setImageResource(0);
-					Toast.makeText(MainActivity.this, "恢复初始背景", Toast.LENGTH_SHORT).show();
-				}else {
-					Bitmap bitmap = BitmapFactory.decodeFile(msg.obj.toString());
-					if (bitmap == null) {
-						Toast.makeText(MainActivity.this, "图片不存在", Toast.LENGTH_SHORT).show();
-						path = null;
-					}else {
-						background.setImageBitmap(bitmap);
-					}
-				}
 			}
 		}
 	};
@@ -481,12 +465,28 @@ public class MainActivity extends MyAppCompatActivity {
 			}while (cursor.moveToNext());
 		}
 		if (!path.equals("")) {
-			Message message = new Message();
-			message.what = 2;
-			message.obj = path;
-			handler.sendMessage(message);
+			setBackground(path);
 		}
 		cursor.close();
+	}
+
+	/**
+	 * 根据传入的图片地址设置界面背景
+	 * @param p 传入的图片的地址
+	 */
+	private void setBackground(String p) {
+		if (p.equals("")) {
+			background.setImageResource(0);
+			Toast.makeText(MainActivity.this, "恢复初始背景", Toast.LENGTH_SHORT).show();
+		}else {
+			Bitmap bitmap = BitmapFactory.decodeFile(p);
+			if (bitmap == null) {
+				Toast.makeText(MainActivity.this, "图片不存在", Toast.LENGTH_SHORT).show();
+				path = null;
+			}else {
+				background.setImageBitmap(bitmap);
+			}
+		}
 	}
 
 	/**

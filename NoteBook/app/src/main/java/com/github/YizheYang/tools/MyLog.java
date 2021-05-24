@@ -11,7 +11,7 @@ public class MyLog {
 	private static final int WARN = 4;
 	private static final int ERROR = 5;
 	private static final int HIDE = 6;
-	private static final int level = VERBOSE;
+	private static final int level = HIDE;
 
 	public static void v(Context context, String message) {
 		if (level <= VERBOSE) {

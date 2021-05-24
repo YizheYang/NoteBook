@@ -65,29 +65,6 @@ public class SecondActivity extends MyAppCompatActivity {
 	private EditText content;
 	private MySQLiteOpenHelper helper;
 	private int secret = 0;
-	private CheckBox checkBox;
-	private ImageView background;
-	private String path;
-
-	Handler handler = new Handler(Looper.getMainLooper()) {
-		@Override
-		public void handleMessage(@NonNull Message msg) {
-			super.handleMessage(msg);
-			if (msg.what == 1) {
-				Note note = (Note) msg.obj;
-				editId = note.id;
-				title.setText(note.title);
-				loadEditData(note.content);
-				secret = note.secret;
-				if (secret == 1) {
-					checkBox.setChecked(true);
-				}
-			}else if (msg.what == 2) {
-				Bitmap bitmap = BitmapFactory.decodeFile(path);
-				background.setImageBitmap(bitmap);
-			}
-		}
-	};
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -99,16 +76,17 @@ public class SecondActivity extends MyAppCompatActivity {
 		title = findViewById(R.id.first_EditText);
 		content = findViewById(R.id.second_EditText);
 		Button testButton = findViewById(R.id.test2);
-		checkBox = findViewById(R.id.checkbox);
+		CheckBox checkBox = findViewById(R.id.checkbox);
 		Title t = findViewById(R.id.second_title);
 
 		Intent it = getIntent();
 		int color = it.getIntExtra("color", R.color.white);
 		getWindow().getDecorView().setBackgroundColor(getResources().getColor(color));
-		path = it.getStringExtra("path");
-		background = findViewById(R.id.second_background);
+		String path = it.getStringExtra("path");
+		ImageView background = findViewById(R.id.second_background);
 		if (path != null && !path.equals("")) {
-			handler.sendEmptyMessage(2);
+			Bitmap bitmap = BitmapFactory.decodeFile(path);
+			background.setImageBitmap(bitmap);
 		}
 
 		mode = it.getIntExtra("mode", NEW_MODE);
@@ -117,10 +95,13 @@ public class SecondActivity extends MyAppCompatActivity {
 			Bundle bundle = it.getBundleExtra("data");
 			Note note = new Note(bundle.getString("id"), bundle.getString("title")
 					, bundle.getString("content"), bundle.getString("date"), bundle.getInt("secret"));
-			Message message = new Message();
-			message.what = 1;
-			message.obj = note;
-			handler.sendMessage(message);
+			editId = note.id;
+			title.setText(note.title);
+			loadEditData(note.content);
+			secret = note.secret;
+			if (secret == 1) {
+				checkBox.setChecked(true);
+			}
 		}else {
 			t.title.setText("新建");
 		}
